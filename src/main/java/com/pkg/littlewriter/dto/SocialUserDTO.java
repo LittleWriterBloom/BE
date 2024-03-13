@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.dto;
 
-import com.pkg.littlewriter.model.SocialUserEntity;
+import com.pkg.littlewriter.model.SocialMemberEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,10 +16,10 @@ public class SocialUserDTO {
     private String email;
     private String nickName;
 
-    public SocialUserDTO (SocialUserEntity socialUserEntity) {
-        this.providedId = socialUserEntity.getProvidedId();
-        this.authProvider = socialUserEntity.getAuthProvider();
-        this.email = socialUserEntity.getEmail();
-        this.nickName = socialUserEntity.getNickName();
+    public SocialUserDTO (SocialMemberEntity socialMemberEntity) {
+        this.providedId = socialMemberEntity.getProvidedId();
+        this.authProvider = socialMemberEntity.getAuthProvider();
+        this.email = socialMemberEntity.getEmail();
+        this.nickName = socialMemberEntity.getNickName();
     }
 }

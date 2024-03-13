@@ -1,7 +1,7 @@
 package com.pkg.littlewriter.service;
 
-import com.pkg.littlewriter.model.SocialUserEntity;
-import com.pkg.littlewriter.model.UserEntity;
+import com.pkg.littlewriter.model.SocialMemberEntity;
+import com.pkg.littlewriter.model.MemberEntity;
 import com.pkg.littlewriter.persistence.SocialUserRepository;
 import com.pkg.littlewriter.persistence.UserRepository;
 import com.pkg.littlewriter.security.ApplicationOAuth2User;
@@ -46,26 +46,26 @@ public class OAuthUserService extends DefaultOAuth2UserService {
         log.info("username : {}", userName);
         if(socialUserRepository.existsByAuthProviderAndProvidedId(authProvider, providedId)) {
             log.info("social account exists");
-            SocialUserEntity socialUserEntity = socialUserRepository.findByAuthProviderAndProvidedId(authProvider, providedId);
-            return new ApplicationOAuth2User(socialUserEntity.getUser().getUsername(), oAuth2User.getAttributes());
+            SocialMemberEntity socialMemberEntity = socialUserRepository.findByAuthProviderAndProvidedId(authProvider, providedId);
+            return new ApplicationOAuth2User(socialMemberEntity.getMember().getUsername(), oAuth2User.getAttributes());
         }
-        UserEntity newUserEntity = UserEntity.builder()
+        MemberEntity newMemberEntity = MemberEntity.builder()
                 .username(userName)
                 .authProvider(authProvider)
                 .role(roleService.getByName("user").get(0))
                 .build();
-       userRepository.save(newUserEntity);
-        SocialUserEntity socialUserEntity = SocialUserEntity.builder()
+       userRepository.save(newMemberEntity);
+        SocialMemberEntity socialMemberEntity = SocialMemberEntity.builder()
                 .authProvider(authProvider)
                 .providedId(providedId)
-                .user(newUserEntity)
+                .member(newMemberEntity)
                 .build();
-        socialUserRepository.save(socialUserEntity);
+        socialUserRepository.save(socialMemberEntity);
         log.info("Successfully pulled user info username {} authProvider {}", userName, authProvider);
-        return new ApplicationOAuth2User(newUserEntity.getUsername(), oAuth2User.getAttributes());
+        return new ApplicationOAuth2User(newMemberEntity.getUsername(), oAuth2User.getAttributes());
     }
 
-    public SocialUserEntity findUserByAuthProviderAndProvidedId(String authProvider, Long providedId) {
+    public SocialMemberEntity findUserByAuthProviderAndProvidedId(String authProvider, Long providedId) {
         return socialUserRepository.findByAuthProviderAndProvidedId(authProvider, providedId);
     }
 

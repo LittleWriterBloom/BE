@@ -1,13 +1,13 @@
 package com.pkg.littlewriter.persistence;
 
-import com.pkg.littlewriter.model.UserEntity;
+import com.pkg.littlewriter.model.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, String> {
-    UserEntity findById(Long id);
-    UserEntity findByUsername(String username);
+public interface UserRepository extends JpaRepository<MemberEntity, String> {
+    MemberEntity findById(Long id);
+    MemberEntity findByUsername(String username);
     Boolean existsByUsername(String username);
-    UserEntity findByUsernameAndPassword(String username, String password);
+    MemberEntity findByUsernameAndPassword(String username, String password);
 }

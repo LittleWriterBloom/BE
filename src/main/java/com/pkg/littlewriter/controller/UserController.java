@@ -3,7 +3,7 @@ package com.pkg.littlewriter.controller;
 import com.pkg.littlewriter.dto.ResponseDTO;
 import com.pkg.littlewriter.dto.UserDTO;
 import com.pkg.littlewriter.model.RoleEntity;
-import com.pkg.littlewriter.model.UserEntity;
+import com.pkg.littlewriter.model.MemberEntity;
 import com.pkg.littlewriter.security.TokenProvider;
 import com.pkg.littlewriter.service.RoleService;
 import com.pkg.littlewriter.service.UserService;
@@ -37,12 +37,12 @@ public class UserController {
             if (userDTO == null || userDTO.getPassword() == null) {
                 throw new RuntimeException("invalid password value.");
             }
-            UserEntity user = UserEntity.builder()
+            MemberEntity user = MemberEntity.builder()
                     .username(userDTO.getUsername())
                     .password(passwordEncoder.encode(userDTO.getPassword()))
                     .role(roleEntity)
                     .build();
-            UserEntity registeredUser = userService.create(user);
+            MemberEntity registeredUser = userService.create(user);
             UserDTO responseUserDTO = UserDTO.builder()
                     .username(registeredUser.getUsername())
                     .build();
@@ -63,7 +63,7 @@ public class UserController {
     @PostMapping("/signin")
     public ResponseEntity<?> authenticate(@RequestBody UserDTO userDTO) {
         log.info("in controller");
-        UserEntity user = userService.getByCredentials(userDTO.getUsername(), userDTO.getPassword(), passwordEncoder);
+        MemberEntity user = userService.getByCredentials(userDTO.getUsername(), userDTO.getPassword(), passwordEncoder);
         if (user != null) {
             String token = tokenProvider.create(user);
             UserDTO loginDTO = UserDTO.builder()

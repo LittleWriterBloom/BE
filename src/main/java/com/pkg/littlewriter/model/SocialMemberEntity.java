@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Entity
-@IdClass(SocialUserPK.class)
-@Table(name = "social_user")
-public class SocialUserEntity {
+@IdClass(SocialMemberPK.class)
+@Table(name = "social_member")
+public class SocialMemberEntity {
     @Id
     @Column(name = "auth_provider")
     private String authProvider;
@@ -22,7 +22,7 @@ public class SocialUserEntity {
     private Long providedId;
     private String email;
     private String nickName;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private MemberEntity member;
 }

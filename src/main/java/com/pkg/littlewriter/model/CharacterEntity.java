@@ -19,5 +19,6 @@ public class CharacterEntity {
     private String name;
     private String personality;
     private String imageUrl;
-    private Long userId;
+    @Column(nullable = false)
+    private Long memberId;
 }

@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface CharacterRepository extends JpaRepository<CharacterEntity, Long> {
-    List<CharacterEntity> findByUserId(Long userId);
+    List<CharacterEntity> findByMemberId(Long memberId);
 }

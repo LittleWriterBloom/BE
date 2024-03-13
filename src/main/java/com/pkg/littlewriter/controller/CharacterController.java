@@ -3,7 +3,7 @@ package com.pkg.littlewriter.controller;
 import com.pkg.littlewriter.dto.CharacterDTO;
 import com.pkg.littlewriter.dto.ResponseDTO;
 import com.pkg.littlewriter.model.CharacterEntity;
-import com.pkg.littlewriter.model.UserEntity;
+import com.pkg.littlewriter.model.MemberEntity;
 import com.pkg.littlewriter.service.CharacterService;
 import com.pkg.littlewriter.service.UserService;
 import com.pkg.littlewriter.utils.S3BucketUtils;
@@ -33,11 +33,11 @@ public class CharacterController {
 
     @PostMapping()
     public ResponseEntity<?> createCharacter(@AuthenticationPrincipal String userName, @RequestParam(value="image") MultipartFile image, CharacterDTO characterDTO) throws IOException {
-        UserEntity userEntity = findUserByName(userName);
+        MemberEntity memberEntity = findUserByName(userName);
         String uploadName = userName + "/character/" + UUID.randomUUID() + ".png";
         s3BucketUtils.uploadToS3Bucket(image, uploadName);
         CharacterEntity newCharacter = CharacterEntity.builder()
-                .userId(userEntity.getId())
+                .memberId(memberEntity.getId())
                 .name(characterDTO.getName())
                 .imageUrl(s3BucketUtils.getBucketEndpoint() + uploadName)
                 .personality(characterDTO.getPersonality())
@@ -54,8 +54,8 @@ public class CharacterController {
 
     @GetMapping
     public ResponseEntity<?> retrieveCharacters(@AuthenticationPrincipal String userName) {
-        UserEntity userEntity = findUserByName(userName);
-        List<CharacterEntity> characterEntities = characterService.retrieveByUserId(userEntity.getId());
+        MemberEntity memberEntity = findUserByName(userName);
+        List<CharacterEntity> characterEntities = characterService.retrieveByUserId(memberEntity.getId());
         List<CharacterDTO> characterDTOs = characterEntities.stream()
                 .map(CharacterDTO::new)
                 .toList();
@@ -83,7 +83,7 @@ public class CharacterController {
 
     @PutMapping("/details")
     public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal String userName, @RequestBody CharacterDTO characterDTO) throws IOException {
-        UserEntity userEntity = findUserByName(userName);
+        MemberEntity memberEntity = findUserByName(userName);
         CharacterEntity targetCharacterEntity = characterService.getById(characterDTO.getId());
         targetCharacterEntity.setPersonality(characterDTO.getPersonality());
         targetCharacterEntity.setName(characterDTO.getName());
@@ -100,7 +100,7 @@ public class CharacterController {
     @DeleteMapping
     public ResponseEntity<?> deleteCharacter(@AuthenticationPrincipal String userName, @RequestBody CharacterDTO characterDTO) {
         try{
-            UserEntity userEntity = findUserByName(userName);
+            MemberEntity memberEntity = findUserByName(userName);
             log.info(characterDTO.getId().toString());
             CharacterEntity targetEntity = CharacterEntity.builder()
                     .id(characterDTO.getId())
@@ -108,7 +108,7 @@ public class CharacterController {
                     .personality(characterDTO.getPersonality())
                     .imageUrl(characterDTO.getImageUrl())
                     .build();
-            targetEntity.setUserId(userEntity.getId());
+            targetEntity.setMemberId(memberEntity.getId());
             log.info(targetEntity.getId().toString());
             List<CharacterEntity> characterEntities = characterService.delete(targetEntity);
             List<CharacterDTO> characterDTOS = characterEntities.stream()
@@ -127,7 +127,7 @@ public class CharacterController {
         }
     }
 
-    private UserEntity findUserByName(String userName) {
+    private MemberEntity findUserByName(String userName) {
         return userService.getByUserName(userName);
     }
 }

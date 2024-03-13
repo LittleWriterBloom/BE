@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.security;
 
-import com.pkg.littlewriter.model.UserEntity;
+import com.pkg.littlewriter.model.MemberEntity;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -28,13 +28,13 @@ public class TokenProvider implements InitializingBean {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String create(UserEntity userEntity) {
+    public String create(MemberEntity memberEntity) {
         Date expiryDate = Date.from(
                 Instant.now()
                         .plus(1, ChronoUnit.DAYS));
         return Jwts.builder()
                 .signWith(key)
-                .subject(userEntity.getId().toString())
+                .subject(memberEntity.getId().toString())
                 .issuer("littleWriter")
                 .issuedAt(new Date())
                 .expiration(expiryDate)

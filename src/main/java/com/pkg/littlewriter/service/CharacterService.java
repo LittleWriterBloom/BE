@@ -19,7 +19,7 @@ public class CharacterService {
     public List<CharacterEntity> create(CharacterEntity characterEntity) {
         validate(characterEntity);
         characterRepository.save(characterEntity);
-        return characterRepository.findByUserId(characterEntity.getUserId());
+        return characterRepository.findByMemberId(characterEntity.getMemberId());
     }
 
     public List<CharacterEntity> update(CharacterEntity characterEntity) {
@@ -30,11 +30,11 @@ public class CharacterService {
             updateEntity.setPersonality(characterEntity.getPersonality());
             updateEntity.setImageUrl(characterEntity.getImageUrl());
         });
-        return retrieveByUserId(characterEntity.getUserId());
+        return retrieveByUserId(characterEntity.getMemberId());
     }
 
     public List<CharacterEntity> retrieveByUserId(Long userId) {
-        return characterRepository.findByUserId(userId);
+        return characterRepository.findByMemberId(userId);
     }
 
     public List<CharacterEntity> delete(CharacterEntity characterEntity) {
@@ -45,7 +45,7 @@ public class CharacterService {
             log.error("err deleting characterEntity", characterEntity.getId(), e);
             throw new RuntimeException("err deleting characterEntity" + characterEntity.getId());
         }
-        return retrieveByUserId(characterEntity.getUserId());
+        return retrieveByUserId(characterEntity.getMemberId());
     }
 
     private void validate(CharacterEntity characterEntity) {
@@ -53,7 +53,7 @@ public class CharacterService {
             log.warn("character Entity is null");
             throw new RuntimeException("character entity is null");
         }
-        if ((characterEntity.getUserId() == null)) {
+        if ((characterEntity.getMemberId() == null)) {
             log.warn("user_id is null");
             throw new RuntimeException("user_id is null");
         }

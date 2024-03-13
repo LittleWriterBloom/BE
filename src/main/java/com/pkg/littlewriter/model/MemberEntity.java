@@ -13,8 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "user")
-public class UserEntity {
+@Table(name = "member")
+public class MemberEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +26,6 @@ public class UserEntity {
     @JoinColumn(name = "role_id")
     private RoleEntity role;
     private String authProvider;
-    @OneToMany(mappedBy = "user")
-    private List<SocialUserEntity> socialUserEntities;
+    @OneToMany(mappedBy = "member")
+    private List<SocialMemberEntity> socialMemberEntities;
 }
