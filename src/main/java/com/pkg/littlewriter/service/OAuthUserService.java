@@ -52,7 +52,6 @@ public class OAuthUserService extends DefaultOAuth2UserService {
         MemberEntity newMemberEntity = MemberEntity.builder()
                 .username(userName)
                 .authProvider(authProvider)
-                .role(roleService.getByName("user").get(0))
                 .build();
        userRepository.save(newMemberEntity);
         SocialMemberEntity socialMemberEntity = SocialMemberEntity.builder()

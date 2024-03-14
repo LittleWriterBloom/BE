@@ -25,14 +25,11 @@ public class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private RoleService roleService;
-    @Autowired
     private TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
-        RoleEntity roleEntity = roleService.getByName("user").get(0);
         try {
             if (userDTO == null || userDTO.getPassword() == null) {
                 throw new RuntimeException("invalid password value.");
@@ -40,7 +37,6 @@ public class UserController {
             MemberEntity user = MemberEntity.builder()
                     .username(userDTO.getUsername())
                     .password(passwordEncoder.encode(userDTO.getPassword()))
-                    .role(roleEntity)
                     .build();
             MemberEntity registeredUser = userService.create(user);
             UserDTO responseUserDTO = UserDTO.builder()

@@ -22,9 +22,7 @@ public class MemberEntity {
     @Column(nullable = false)
     private String username;
     private String password;
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private RoleEntity role;
+    private String privilege;
     private String authProvider;
     @OneToMany(mappedBy = "member")
     private List<SocialMemberEntity> socialMemberEntities;

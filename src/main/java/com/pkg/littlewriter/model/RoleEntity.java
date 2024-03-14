@@ -19,6 +19,4 @@ public class RoleEntity {
     @Id
     private int id;
     private String name;
-    @OneToMany(mappedBy = "role")
-    private List<MemberEntity> memberEntities;
 }
