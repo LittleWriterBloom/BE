@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.util.List;
 
@@ -22,8 +23,15 @@ public class MemberEntity {
     @Column(nullable = false)
     private String username;
     private String password;
-    private String privilege;
+    private String authority;
     private String authProvider;
     @OneToMany(mappedBy = "member")
     private List<SocialMemberEntity> socialMemberEntities;
+
+    @PrePersist
+    private void setDefaultPrivilege() {
+        if(this.authority == null) {
+            this.authority = "standard";
+        }
+    }
 }
