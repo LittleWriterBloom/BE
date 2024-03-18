@@ -22,7 +22,7 @@ public class SocialMemberEntity {
     private Long providedId;
     private String email;
     private String nickName;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "member_id")
     private MemberEntity member;
 }

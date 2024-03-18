@@ -2,10 +2,8 @@ package com.pkg.littlewriter.controller;
 
 import com.pkg.littlewriter.dto.ResponseDTO;
 import com.pkg.littlewriter.dto.UserDTO;
-import com.pkg.littlewriter.model.RoleEntity;
 import com.pkg.littlewriter.model.MemberEntity;
 import com.pkg.littlewriter.security.TokenProvider;
-import com.pkg.littlewriter.service.RoleService;
 import com.pkg.littlewriter.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,13 +40,13 @@ public class UserController {
             UserDTO responseUserDTO = UserDTO.builder()
                     .username(registeredUser.getUsername())
                     .build();
-            ResponseDTO responseDTO = ResponseDTO.builder()
+            ResponseDTO<Object> responseDTO = ResponseDTO.builder()
                     .data(List.of(responseUserDTO))
                     .build();
             return ResponseEntity.ok()
                     .body(responseDTO);
         } catch (Exception e) {
-            ResponseDTO responseDTO = ResponseDTO.builder()
+            ResponseDTO<Object> responseDTO = ResponseDTO.builder()
                     .error(e.getMessage())
                     .build();
             return ResponseEntity.badRequest()

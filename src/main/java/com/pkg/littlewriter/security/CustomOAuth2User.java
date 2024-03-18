@@ -1,5 +1,6 @@
 package com.pkg.littlewriter.security;
 
+import com.pkg.littlewriter.model.MemberEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -8,14 +9,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class ApplicationOAuth2User implements OAuth2User {
-    private String userName;
-    private Collection<? extends GrantedAuthority> authorities;
-    private Map<String, Object> attributes;
+public class CustomOAuth2User implements OAuth2User {
+    private final String userName;
+    private final Long userId;
+    private final Collection<? extends GrantedAuthority> authorities;
+    private final Map<String, Object> attributes;
 
-    public ApplicationOAuth2User(String userName, Map<String, Object> attributes) {
-        this.userName = userName;
+    public CustomOAuth2User(MemberEntity memberEntity, Map<String, Object> attributes) {
+        this.userName = memberEntity.getUsername();
         this.attributes = attributes;
+        this.userId = memberEntity.getId();
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
@@ -32,5 +35,9 @@ public class ApplicationOAuth2User implements OAuth2User {
     @Override
     public String getName() {
         return this.userName;
+    }
+
+    public Long getUserId() {
+        return this.userId;
     }
 }

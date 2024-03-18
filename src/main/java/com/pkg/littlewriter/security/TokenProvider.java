@@ -1,11 +1,14 @@
 package com.pkg.littlewriter.security;
 
 import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.service.KakaoOauth2UserService;
+import com.pkg.littlewriter.service.UserService;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,10 @@ import java.util.Date;
 @Slf4j
 @Service
 public class TokenProvider implements InitializingBean {
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private KakaoOauth2UserService oAuthUserService;
     @Value("${jwt.secret}")
     private String secret;
     private SecretKey key;
@@ -42,13 +49,13 @@ public class TokenProvider implements InitializingBean {
     }
 
     public String create(Authentication authentication) {
-        ApplicationOAuth2User userPrincipal = (ApplicationOAuth2User) authentication.getPrincipal();
+        CustomOAuth2User userPrincipal = (CustomOAuth2User) authentication.getPrincipal();
         Date expiryDate = Date.from(
                 Instant.now()
                         .plus(1, ChronoUnit.DAYS));
         return Jwts.builder()
                 .signWith(key)
-                .subject(userPrincipal.getName())
+                .subject(userPrincipal.getUserId().toString())
                 .issuer("littleWriter")
                 .issuedAt(new Date())
                 .expiration(expiryDate)

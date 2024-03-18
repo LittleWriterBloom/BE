@@ -1,5 +1,7 @@
 package com.pkg.littlewriter.security;
 
+import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +25,8 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private TokenProvider tokenProvider;
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -33,9 +37,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.info(request.getRequestURI());
             }
             if (token != null && !token.equalsIgnoreCase("null")) {
-                String userId = tokenProvider.validateAndGetUserId(token);
-                log.info("Authentication user ID : " + userId);
-                AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, AuthorityUtils.NO_AUTHORITIES);
+                CustomUserDetails userDetails = userDetailsService.loadUserById((Long.valueOf(tokenProvider.validateAndGetUserId(token))));
+                AbstractAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, AuthorityUtils.NO_AUTHORITIES);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
                 securityContext.setAuthentication(authentication);

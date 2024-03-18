@@ -2,7 +2,7 @@ package com.pkg.littlewriter.config;
 
 import com.pkg.littlewriter.security.OAuthAuthorizationRequestRepository;
 import com.pkg.littlewriter.security.OAuthSuccessHandler;
-import com.pkg.littlewriter.service.OAuthUserService;
+import com.pkg.littlewriter.service.KakaoOauth2UserService;
 import com.pkg.littlewriter.security.JwtAuthenticationFilter;
 import com.pkg.littlewriter.security.OAuthFailureHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class WebSecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
     @Autowired
-    private OAuthUserService oAuthUserService;
+    private KakaoOauth2UserService oAuthUserService;
     @Autowired
     private OAuthAuthorizationRequestRepository oAuthAuthorizationRequestRepository;
     @Autowired
