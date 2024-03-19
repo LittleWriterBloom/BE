@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -71,6 +70,7 @@ public class CharacterController {
         String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
         s3BucketUtils.uploadToS3Bucket(image, uploadName);
         CharacterEntity characterEntity = characterService.getById(characterId);
+        s3BucketUtils.deleteFromS3Bucket(characterEntity.getImageUrl());
         characterEntity.setImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
         List<CharacterDTO> characters = characterService.update(characterEntity)
                 .stream()
@@ -90,7 +90,7 @@ public class CharacterController {
         List<CharacterDTO> characters = characterService.update(targetCharacterEntity)
                 .stream()
                 .map(CharacterDTO::new)
-                .collect(Collectors.toList());
+                .toList();
         ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
                 .data(characters)
                 .build();
@@ -100,16 +100,10 @@ public class CharacterController {
     @DeleteMapping
     public ResponseEntity<?> deleteCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
         try{
-            MemberEntity memberEntity = userService.getById(userDetails.getId());
-            log.info(characterDTO.getId().toString());
-            CharacterEntity targetEntity = CharacterEntity.builder()
-                    .id(characterDTO.getId())
-                    .name(characterDTO.getName())
-                    .personality(characterDTO.getPersonality())
-                    .imageUrl(characterDTO.getImageUrl())
-                    .build();
-            targetEntity.setMemberId(memberEntity.getId());
+            CharacterEntity targetEntity = characterService.getById(characterDTO.getId());
+            targetEntity.setMemberId(userDetails.getId());
             log.info(targetEntity.getId().toString());
+            s3BucketUtils.deleteFromS3Bucket(targetEntity.getImageUrl());
             List<CharacterEntity> characterEntities = characterService.delete(targetEntity);
             List<CharacterDTO> characterDTOS = characterEntities.stream()
                     .map(CharacterDTO::new)
