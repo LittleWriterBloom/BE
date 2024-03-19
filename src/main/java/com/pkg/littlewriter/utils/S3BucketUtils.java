@@ -17,14 +17,20 @@ public class S3BucketUtils {
     private AmazonS3Client amazonS3Client;
 
     @Value("${cloud.aws.s3.bucket}")
-    private String bucket;
+    private String bucketName;
     @Value("${cloud.aws.s3.baseUrl}")
     private String baseUrl;
     public void uploadToS3Bucket(MultipartFile image, String uploadName) throws IOException {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(image.getContentType());
         metadata.setContentLength(image.getSize());
-        amazonS3Client.putObject(bucket,uploadName,image.getInputStream(),metadata);
+        amazonS3Client.putObject(bucketName,uploadName,image.getInputStream(),metadata);
+    }
+
+    public void deleteFromS3Bucket(String fileName) {
+        if(amazonS3Client.doesObjectExist(bucketName, fileName)) {
+            amazonS3Client.deleteObject(bucketName, fileName);
+        }
     }
 
     public String getBucketEndpoint() {
