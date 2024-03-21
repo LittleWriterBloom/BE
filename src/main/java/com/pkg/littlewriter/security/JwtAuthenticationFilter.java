@@ -1,6 +1,5 @@
 package com.pkg.littlewriter.security;
 
-import com.pkg.littlewriter.model.MemberEntity;
 import com.pkg.littlewriter.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

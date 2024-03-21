@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.persistence;
 
-import com.pkg.littlewriter.model.CharacterEntity;
+import com.pkg.littlewriter.domain.model.CharacterEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

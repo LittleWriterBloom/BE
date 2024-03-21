@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.dto;
 
-import com.pkg.littlewriter.model.SocialMemberEntity;
+import com.pkg.littlewriter.domain.model.SocialMemberEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

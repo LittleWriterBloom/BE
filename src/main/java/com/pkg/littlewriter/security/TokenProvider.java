@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.security;
 
-import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.domain.model.MemberEntity;
 import com.pkg.littlewriter.service.KakaoOauth2UserService;
 import com.pkg.littlewriter.service.UserService;
 import io.jsonwebtoken.Jwts;

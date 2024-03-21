@@ -1,4 +1,4 @@
-package com.pkg.littlewriter.model;
+package com.pkg.littlewriter.domain.model;
 
 import lombok.Data;
 

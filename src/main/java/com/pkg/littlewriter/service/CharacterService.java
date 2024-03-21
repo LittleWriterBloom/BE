@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.service;
 
-import com.pkg.littlewriter.model.CharacterEntity;
+import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.pkg.littlewriter.persistence.CharacterRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

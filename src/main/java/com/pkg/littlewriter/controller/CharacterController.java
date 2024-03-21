@@ -2,8 +2,8 @@ package com.pkg.littlewriter.controller;
 
 import com.pkg.littlewriter.dto.CharacterDTO;
 import com.pkg.littlewriter.dto.ResponseDTO;
-import com.pkg.littlewriter.model.CharacterEntity;
-import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.domain.model.CharacterEntity;
+import com.pkg.littlewriter.domain.model.MemberEntity;
 import com.pkg.littlewriter.security.CustomUserDetails;
 import com.pkg.littlewriter.service.CharacterService;
 import com.pkg.littlewriter.service.UserService;

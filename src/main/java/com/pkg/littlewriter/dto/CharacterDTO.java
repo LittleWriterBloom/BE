@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.dto;
 
-import com.pkg.littlewriter.model.CharacterEntity;
+import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

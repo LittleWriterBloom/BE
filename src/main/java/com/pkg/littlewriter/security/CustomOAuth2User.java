@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.security;
 
-import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.domain.model.MemberEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;

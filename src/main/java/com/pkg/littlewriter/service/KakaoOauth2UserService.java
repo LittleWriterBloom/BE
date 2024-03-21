@@ -1,7 +1,7 @@
 package com.pkg.littlewriter.service;
 
-import com.pkg.littlewriter.model.SocialMemberEntity;
-import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.domain.model.SocialMemberEntity;
+import com.pkg.littlewriter.domain.model.MemberEntity;
 import com.pkg.littlewriter.persistence.SocialUserRepository;
 import com.pkg.littlewriter.persistence.UserRepository;
 import com.pkg.littlewriter.security.CustomOAuth2User;

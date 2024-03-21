@@ -2,7 +2,7 @@ package com.pkg.littlewriter.controller;
 
 import com.pkg.littlewriter.dto.ResponseDTO;
 import com.pkg.littlewriter.dto.UserDTO;
-import com.pkg.littlewriter.model.MemberEntity;
+import com.pkg.littlewriter.domain.model.MemberEntity;
 import com.pkg.littlewriter.security.TokenProvider;
 import com.pkg.littlewriter.service.UserService;
 import lombok.extern.slf4j.Slf4j;
