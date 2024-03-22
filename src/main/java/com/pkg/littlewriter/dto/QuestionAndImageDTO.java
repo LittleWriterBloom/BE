@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class PageProgressResponseDTO {
+public class QuestionAndImageDTO {
     private String generatedQuestions;
     private String temporaryGeneratedImageUrl;
 }
