@@ -19,7 +19,7 @@ public class KeywordToImageGenerator implements GenerativeAi {
         CreateImageRequest request = CreateImageRequest.builder()
                 .model(OpenAiModelEnum.DALL_E_2.getName())
                 .quality("standard")
-                .size("1024x1024")
+                .size("512x512")
                 .prompt(keyWordJsonable.toJsonString())
                 .n(1)
                 .build();

@@ -7,10 +7,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Builder
 @Data
-public class KeywordJsonable extends Jsonable {
+public class ImageKeywordJsonable extends Jsonable {
     private String keyword;
 
-    public KeywordJsonable(String keyword) {
+    public ImageKeywordJsonable(String keyword) {
         this.keyword = keyword;
     }
 }

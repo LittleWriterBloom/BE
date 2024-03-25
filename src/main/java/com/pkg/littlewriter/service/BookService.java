@@ -14,4 +14,8 @@ public class BookService {
     public QuestionAndImageDTO generateHelperContents(BookInProgress bookInProgress) {
         return  aiBookCreationHelper.generateQuestionAndImageFrom(bookInProgress);
     }
+
+    public String generateImageUrl(String keyword) {
+        return aiBookCreationHelper.generateImageUrlFrom(keyword);
+    }
 }

@@ -2,10 +2,7 @@ package com.pkg.littlewriter.controller;
 
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
 import com.pkg.littlewriter.domain.model.CharacterEntity;
-import com.pkg.littlewriter.dto.CharacterDTO;
-import com.pkg.littlewriter.dto.PageProgressRequestDTO;
-import com.pkg.littlewriter.dto.QuestionAndImageDTO;
-import com.pkg.littlewriter.dto.ResponseDTO;
+import com.pkg.littlewriter.dto.*;
 import com.pkg.littlewriter.security.CustomUserDetails;
 import com.pkg.littlewriter.service.BookService;
 import com.pkg.littlewriter.service.CharacterService;
@@ -15,9 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,7 +27,7 @@ public class BookController {
     private CharacterService characterService;
 
     @PostMapping("/page-help")
-    public ResponseEntity<?> createHelperContents(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody PageProgressRequestDTO pageProgressRequestDTO) {
+    public ResponseEntity<?> generateHelperContents(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody PageProgressRequestDTO pageProgressRequestDTO) {
         CharacterEntity characterEntity = characterService.getById(pageProgressRequestDTO.getCharacterId());
         CharacterDTO characterDTO = CharacterDTO.builder()
                 .name(characterEntity.getName())
@@ -45,10 +40,33 @@ public class BookController {
                 .currentContext(pageProgressRequestDTO.getUserContext())
                 .characterDTO(characterDTO)
                 .build();
-        QuestionAndImageDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
-        ResponseDTO<QuestionAndImageDTO> responseDTO = ResponseDTO.<QuestionAndImageDTO>builder()
-                .data(List.of(questionAndImageDTO))
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
+        try {
+            QuestionAndImageDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
+            ResponseDTO<QuestionAndImageDTO> responseDTO = ResponseDTO.<QuestionAndImageDTO>builder()
+                    .data(List.of(questionAndImageDTO))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (RuntimeException e) {
+            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
+                    .error("cannot get response from openAi api")
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        }
+    }
+
+    @PostMapping("/init")
+    public ResponseEntity<?> generateBackgroundImage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody InitRequestDTO initRequestDTO) {
+        try {
+            String generatedImageUrl = bookService.generateImageUrl(initRequestDTO.getBackgroundInfo());
+            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
+                    .data(List.of(generatedImageUrl))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (RuntimeException e) {
+            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
+                    .error("cannot get response from openAi api")
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        }
     }
 }

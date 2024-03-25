@@ -24,7 +24,7 @@ public class KeywordExtractor implements GenerativeAi {
                     - depict current background's details.
                     - do not contain any characters
                     - only answer with keywords, seperated by comma
-                    - answer must ends with ", no character, cartoon"
+                    - answer must ends with ", no character, cartoon, background image"
                     - answer in english"""
     );
 

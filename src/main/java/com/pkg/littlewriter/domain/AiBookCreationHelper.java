@@ -22,12 +22,23 @@ public class AiBookCreationHelper {
         try {
             GenerativeAiResponse contextQuestionResponse = contextQuestionGenerator.getResponse(bookInProgressJsonable);
             GenerativeAiResponse extractedKeywords = keywordExtractor.getResponse(bookInProgressJsonable);
-            KeywordJsonable keywordJsonable = new KeywordJsonable(extractedKeywords.getMessage());
+            ImageKeywordJsonable keywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
             GenerativeAiResponse imageUrlResponse = keywordToImageGenerator.getResponse(keywordJsonable);
             return QuestionAndImageDTO.builder()
                     .generatedQuestions(contextQuestionResponse.getMessage())
                     .temporaryGeneratedImageUrl(imageUrlResponse.getMessage())
                     .build();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String generateImageUrlFrom(String keyword) {
+        try {
+            ImageKeywordJsonable keywordJsonable = new ImageKeywordJsonable(keyword);
+            GenerativeAiResponse extractedKeywords = keywordExtractor.getResponse(keywordJsonable);
+            ImageKeywordJsonable extractedKeywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
+            return keywordToImageGenerator.getResponse(extractedKeywordJsonable).getMessage();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
