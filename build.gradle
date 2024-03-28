@@ -34,6 +34,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
 	implementation 'com.theokanning.openai-gpt3-java:service:0.18.2'
 	implementation 'com.h2database:h2'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	testImplementation 'org.assertj:assertj-core:3.25.3'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

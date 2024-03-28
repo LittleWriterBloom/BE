@@ -5,9 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class LittleWriter {
-
-	public static void main(String[] args) {
-		SpringApplication.run(LittleWriter.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(LittleWriter.class, args);
+    }
 
 }
