@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.service;
 
-import com.pkg.littlewriter.domain.model.redis.BookInProgress;
+import com.pkg.littlewriter.domain.model.redis.BookInProgressIdCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -12,20 +12,20 @@ import java.util.concurrent.TimeUnit;
 public class BookInProgressRedisService {
     private static final String KEY = "book_in_progress";
     private static final Long EXPIRATION_SEC = 3600L;
-    private final HashOperations<String, String, BookInProgress> hashOperations;
+    private final HashOperations<String, String, BookInProgressIdCache> hashOperations;
 
     @Autowired
-    public BookInProgressRedisService(RedisTemplate<String, BookInProgress> redisTemplate) {
+    public BookInProgressRedisService(RedisTemplate<String, BookInProgressIdCache> redisTemplate) {
         this.hashOperations = redisTemplate.opsForHash();
         redisTemplate.expire(KEY, EXPIRATION_SEC, TimeUnit.SECONDS);
     }
 
-    public void save(BookInProgress bookInProgressRedisEntity) {
-        validateBookInProgress(bookInProgressRedisEntity);
-        hashOperations.put(KEY, bookInProgressRedisEntity.getUserId(), bookInProgressRedisEntity);
+    public void save(BookInProgressIdCache bookInProgressIdCache) {
+        validateBookInProgress(bookInProgressIdCache);
+        hashOperations.put(KEY, bookInProgressIdCache.getUserId(), bookInProgressIdCache);
     }
 
-    public BookInProgress getByUserId(Long userId) {
+    public BookInProgressIdCache getByUserId(Long userId) {
         String userIdString = String.valueOf(userId);
         return hashOperations.get(KEY, userIdString);
     }
@@ -35,8 +35,8 @@ public class BookInProgressRedisService {
         return hashOperations.hasKey(KEY, userIdString);
     }
 
-    private void validateBookInProgress(BookInProgress bookInProgress) {
-        if(bookInProgress.getBookId() == null || bookInProgress.getUserId() == null) {
+    private void validateBookInProgress(BookInProgressIdCache bookInProgressIdCache) {
+        if(bookInProgressIdCache.getBookId() == null || bookInProgressIdCache.getUserId() == null) {
             throw new IllegalArgumentException("bookInProgress field cannot be null");
         }
     }
