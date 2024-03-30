@@ -35,7 +35,7 @@ public class WebSecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrf -> csrf.disable());
         http.authorizeHttpRequests(configurer -> configurer
-                .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**", "/books/board/**").permitAll()
                 .anyRequest().authenticated()
         );
         http.oauth2Login(oauth2Login -> oauth2Login

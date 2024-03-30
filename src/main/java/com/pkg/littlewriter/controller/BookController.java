@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-@RequestMapping("/books")
+@RequestMapping("/books/builder")
 public class BookController {
     @Autowired
     private BookService bookService;
@@ -43,7 +43,7 @@ public class BookController {
     @Autowired
     private S3BucketUtils s3BucketUtils;
 
-    @PostMapping("/{bookId}/progress")
+    @PostMapping("/{bookId}/insight")
     public ResponseEntity<?> generateBookInProgress(@PathVariable String bookId, @AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody PageProgressRequestDTO pageProgressRequestDTO) {
         if (!bookInProgressRedisService.existsByUserId(customUserDetails.getId())) {
             return ResponseEntity.badRequest().build();
@@ -84,7 +84,7 @@ public class BookController {
         }
     }
 
-    @PostMapping("/{bookId}/create")
+    @PostMapping("{bookId}/save")
     public ResponseEntity<?> createBook(@PathVariable String bookId, @AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookCreationRequestDTO bookCreationRequestDTO) {
         if (!bookInProgressRedisService.existsByUserId(customUserDetails.getId())) {
             return ResponseEntity.badRequest().build();
@@ -118,11 +118,11 @@ public class BookController {
             page.setImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
             bookPageService.createPage(page);
         });
-        List<BookDTO> bookDTOS = bookService.findAllByUserId(customUserDetails.getId())
+        List<BookDTO> bookDTOS = bookService.getAllByUserId(customUserDetails.getId())
                 .stream()
                 .map(book -> BookDTO.builder()
                         .title(book.getTitle())
-                        .id(book.getTitle())
+                        .id(book.getId())
                         .userId(book.getUserId())
                         .characterId(book.getCharacterId())
                         .build())
@@ -133,7 +133,7 @@ public class BookController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
-    @PostMapping("/init")
+    @PostMapping("init")
     public ResponseEntity<?> generateBackgroundImage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInitRequestDTO initRequestDTO) {
         String bookInProgressId = UUID.randomUUID().toString();
         String uploadName = "temporary/" + bookInProgressId + "/" + UUID.randomUUID() + ".png";
@@ -161,27 +161,5 @@ public class BookController {
                     .build();
             return ResponseEntity.ok().body(responseDTO);
         }
-    }
-
-    @GetMapping("/{bookId}")
-    public ResponseEntity<?> getBook(@PathVariable String bookId) {
-        BookEntity bookEntity = bookService.getById(bookId);
-        List<PageDTO> pageDTOs = bookPageService.getAllById(bookId)
-                .stream()
-                .map(page -> PageDTO.builder()
-                        .context(page.getContext())
-                        .backgroundImageUrl(page.getImageUrl())
-                        .characterActionInfo(page.getActionInfo())
-                        .build())
-                .collect(Collectors.toList());
-        BookDTO bookDTO = BookDTO.builder()
-                .pages(pageDTOs)
-                .createDate(bookEntity.getCreateDate())
-                .title(bookEntity.getTitle())
-                .build();
-        ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
-                .data(List.of(bookDTO))
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
     }
 }

@@ -30,7 +30,7 @@ public class BookService {
         return bookRepository.findById(bookEntity.getId()).orElseThrow();
     }
 
-    public List<BookEntity> findAllByUserId(Long userId) {
+    public List<BookEntity> getAllByUserId(Long userId) {
         return bookRepository.findAllByUserId(userId);
     }
 
