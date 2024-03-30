@@ -56,6 +56,15 @@ public class S3BucketUtils {
         amazonS3Client.putObject(bucketName, uploadName, new ByteArrayInputStream(byteArrays), metadata);
     }
 
+    public void copyFile(String sourceFilePath, String uploadName) {
+        String fileName = getFileNameFromUrl(sourceFilePath);
+        amazonS3Client.copyObject(bucketName, fileName, bucketName, uploadName);
+    }
+
+    private String getFileNameFromUrl(String fullFilePathUrl) {
+        return fullFilePathUrl.replace(baseUrl, "");
+    }
+
     public String getBucketEndpoint() {
         return baseUrl;
     }
