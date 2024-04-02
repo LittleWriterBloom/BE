@@ -28,6 +28,7 @@ public class TokenProvider implements InitializingBean {
     @Value("${jwt.secret}")
     private String secret;
     private SecretKey key;
+    private static final int EXPIRY_DATE = 30;
 
     @Override
     public void afterPropertiesSet() {
@@ -38,7 +39,7 @@ public class TokenProvider implements InitializingBean {
     public String create(MemberEntity memberEntity) {
         Date expiryDate = Date.from(
                 Instant.now()
-                        .plus(1, ChronoUnit.DAYS));
+                        .plus(EXPIRY_DATE, ChronoUnit.DAYS));
         return Jwts.builder()
                 .signWith(key)
                 .subject(memberEntity.getId().toString())
