@@ -1,10 +1,7 @@
 package com.pkg.littlewriter.config;
 
-import com.pkg.littlewriter.security.OAuthAuthorizationRequestRepository;
-import com.pkg.littlewriter.security.OAuthSuccessHandler;
+import com.pkg.littlewriter.security.*;
 import com.pkg.littlewriter.service.KakaoOauth2UserService;
-import com.pkg.littlewriter.security.JwtAuthenticationFilter;
-import com.pkg.littlewriter.security.OAuthFailureHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.web.filter.CorsFilter;
@@ -35,7 +32,7 @@ public class WebSecurityConfig {
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrf -> csrf.disable());
         http.authorizeHttpRequests(configurer -> configurer
-                .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**", "/books/board/**").permitAll()
+                .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**", "/books/board/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
         );
         http.oauth2Login(oauth2Login -> oauth2Login
@@ -48,6 +45,7 @@ public class WebSecurityConfig {
                 .successHandler(successHandler)
                 .failureHandler(failureHandler)
         );
+        http.headers(headerConfigurer -> headerConfigurer.frameOptions(option -> option.disable()));
         http.exceptionHandling(exceptionConfigurer -> exceptionConfigurer
                 .authenticationEntryPoint(new Http403ForbiddenEntryPoint()));
         http.addFilterAfter(jwtAuthenticationFilter, CorsFilter.class);
