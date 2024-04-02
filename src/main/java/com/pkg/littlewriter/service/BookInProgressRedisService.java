@@ -40,4 +40,8 @@ public class BookInProgressRedisService {
             throw new IllegalArgumentException("bookInProgress field cannot be null");
         }
     }
+    public void delete(BookInProgressIdCache bookInProgressIdCache) {
+        validateBookInProgress(bookInProgressIdCache);
+        hashOperations.delete(KEY, bookInProgressIdCache.getUserId(), bookInProgressIdCache);
+    }
 }

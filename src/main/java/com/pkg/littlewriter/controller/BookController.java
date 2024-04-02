@@ -130,6 +130,7 @@ public class BookController {
         ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
                 .data(bookDTOS)
                 .build();
+        bookInProgressRedisService.delete(cache);
         return ResponseEntity.ok().body(responseDTO);
     }
 
