@@ -4,6 +4,7 @@ import com.pkg.littlewriter.security.*;
 import com.pkg.littlewriter.service.KakaoOauth2UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -25,12 +26,15 @@ public class WebSecurityConfig {
     private OAuthFailureHandler failureHandler;
     @Autowired
     private OAuthSuccessHandler successHandler;
+    @Autowired
+    private CorsConfigurationSource littleWriterConfigSource;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.httpBasic(httpBasic -> httpBasic.disable());
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.csrf(csrf -> csrf.disable());
+        http.cors(corsConfigurer -> corsConfigurer.configurationSource(littleWriterConfigSource));
         http.authorizeHttpRequests(configurer -> configurer
                 .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**", "/books/board/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
