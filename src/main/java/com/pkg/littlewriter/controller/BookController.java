@@ -8,7 +8,6 @@ import com.pkg.littlewriter.domain.model.redis.BookInProgressIdCache;
 import com.pkg.littlewriter.dto.*;
 import com.pkg.littlewriter.security.CustomUserDetails;
 import com.pkg.littlewriter.service.*;
-import com.pkg.littlewriter.utils.S3BucketUtils;
 import com.pkg.littlewriter.utils.S3DirectoryEnum;
 import com.pkg.littlewriter.utils.S3File;
 import lombok.RequiredArgsConstructor;
@@ -66,7 +65,7 @@ public class BookController {
                 .build();
         try {
             QuestionAndImageDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
-            S3File temporaryUploadedFil = s3BucketService.uploadTemporaryFromUrl(questionAndImageDTO.getTemporaryGeneratedImageUrl());
+            S3File temporaryUploadedFil = s3BucketService.uploadTemporaryFromUrl(questionAndImageDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
             questionAndImageDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFil.getUrl());
             ResponseDTO<QuestionAndImageDTO> responseDTO = ResponseDTO.<QuestionAndImageDTO>builder()
                     .data(List.of(questionAndImageDTO))
@@ -141,7 +140,7 @@ public class BookController {
         bookInProgressRedisService.save(bookInProgressIdCache);
         try {
             String generatedImageUrl = bookService.generateImageUrl(initRequestDTO.getBackgroundInfo());
-            S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(generatedImageUrl);
+            S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(generatedImageUrl, S3DirectoryEnum.TEMPORARY);
             BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
                     .bookId(bookInProgressId)
                     .imageUrl(temporaryUploadedFile.getUrl())

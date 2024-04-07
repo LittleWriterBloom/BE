@@ -1,5 +1,6 @@
 package com.pkg.littlewriter.controller;
 
+import com.pkg.littlewriter.dto.CharacterCreationRequestDTO;
 import com.pkg.littlewriter.dto.CharacterDTO;
 import com.pkg.littlewriter.dto.ResponseDTO;
 import com.pkg.littlewriter.domain.model.CharacterEntity;
@@ -8,7 +9,7 @@ import com.pkg.littlewriter.security.CustomUserDetails;
 import com.pkg.littlewriter.service.CharacterService;
 import com.pkg.littlewriter.service.S3BucketService;
 import com.pkg.littlewriter.service.UserService;
-import com.pkg.littlewriter.utils.S3BucketUtils;
+import com.pkg.littlewriter.utils.S3DirectoryEnum;
 import com.pkg.littlewriter.utils.S3File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -30,23 +29,18 @@ public class CharacterController {
     UserService userService;
     @Autowired
     CharacterService characterService;
-//    @Autowired
-//    S3BucketUtils s3BucketUtils;
     @Autowired
     S3BucketService s3BucketService;
 
     @PostMapping()
-    public ResponseEntity<?> createCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value="image") MultipartFile image, CharacterDTO characterDTO) throws IOException {
+    public ResponseEntity<?> createCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO) {
         MemberEntity memberEntity = userService.getById(userDetails.getId());
-//        String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
-//        s3BucketUtils.uploadToS3Bucket(image, uploadName);
-        S3File characterImageFile = s3BucketService.uploadCharacterImage(image);
+        S3File characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
         CharacterEntity newCharacter = CharacterEntity.builder()
                 .memberId(memberEntity.getId())
-                .name(characterDTO.getName())
-//                .imageUrl(s3BucketUtils.getBucketEndpoint() + uploadName)
+                .name(characterCreationRequestDTO.getName())
                 .imageUrl(characterImageFile.getUrl())
-                .personality(characterDTO.getPersonality())
+                .personality(characterCreationRequestDTO.getPersonality())
                 .build();
         List<CharacterDTO> characters = characterService.create(newCharacter)
                 .stream()
@@ -72,14 +66,10 @@ public class CharacterController {
     }
 
     @PutMapping("/image")
-    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value="image") MultipartFile image, @RequestParam(value="id") Long characterId) throws IOException {
-//        String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
-//        s3BucketUtils.uploadToS3Bucket(image, uploadName);
-        S3File characterImageFile = s3BucketService.uploadCharacterImage(image);
+    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO, @RequestParam(value="id") Long characterId) {
+        S3File characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
         CharacterEntity characterEntity = characterService.getById(characterId);
-//        s3BucketUtils.deleteFromS3Bucket(characterEntity.getImageUrl());
         s3BucketService.deleteFileFromS3(new S3File(characterEntity.getImageUrl()));
-//        characterEntity.setImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
         characterEntity.setImageUrl(characterImageFile.getUrl());
         List<CharacterDTO> characters = characterService.update(characterEntity)
                 .stream()
@@ -111,8 +101,6 @@ public class CharacterController {
         try{
             CharacterEntity targetEntity = characterService.getById(characterDTO.getId());
             targetEntity.setMemberId(userDetails.getId());
-            log.info(targetEntity.getId().toString());
-//            s3BucketUtils.deleteFromS3Bucket(targetEntity.getImageUrl());
             s3BucketService.deleteFileFromS3(new S3File(targetEntity.getImageUrl()));
             List<CharacterEntity> characterEntities = characterService.delete(targetEntity);
             List<CharacterDTO> characterDTOS = characterEntities.stream()

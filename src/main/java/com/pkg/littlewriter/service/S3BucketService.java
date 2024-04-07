@@ -2,6 +2,7 @@ package com.pkg.littlewriter.service;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.pkg.littlewriter.utils.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
@@ -22,7 +24,6 @@ public class S3BucketService {
                 .endPoint(origin.getEndPoint())
                 .directories(destinationDirectory.getDirectoryName())
                 .fileName(origin.getFileName()).build();
-        System.out.println(origin.getKey() + "    " + copyFile.getKey());
         s3BucketUtils.copyFile2(origin.getKey(), copyFile.getKey());
         return copyFile;
     }
@@ -33,13 +34,23 @@ public class S3BucketService {
         return s3File;
     }
 
-    public S3File uploadTemporaryFromUrl(String urlString) throws IOException {
+    public S3File uploadTemporaryFromUrl(String urlString, S3DirectoryEnum directory) throws IOException {
         URL url = new URL(urlString);
         byte[] byteArrays = StreamUtils.copyToByteArray(url.openStream());
+        return uploadFromByteArrays(byteArrays, directory);
+    }
+
+    public S3File uploadFromBase64(String base64String, S3DirectoryEnum directory) {
+        byte[] byteArrays = Base64.getDecoder().decode(base64String);
+        return uploadFromByteArrays(byteArrays, directory);
+    }
+
+    @NotNull
+    private S3File uploadFromByteArrays(byte[] byteArrays, S3DirectoryEnum s3DirectoryEnum) {
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType("image");
         metadata.setContentLength(byteArrays.length);
-        S3File uploadFile = createRandomNamePngFile(S3DirectoryEnum.TEMPORARY);
+        S3File uploadFile = createRandomNamePngFile(s3DirectoryEnum);
         s3BucketUtils.uploadFromByteArrays(byteArrays, uploadFile.getKey());
         return uploadFile;
     }
