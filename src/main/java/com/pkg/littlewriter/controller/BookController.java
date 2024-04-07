@@ -7,11 +7,10 @@ import com.pkg.littlewriter.domain.model.PageEntity;
 import com.pkg.littlewriter.domain.model.redis.BookInProgressIdCache;
 import com.pkg.littlewriter.dto.*;
 import com.pkg.littlewriter.security.CustomUserDetails;
-import com.pkg.littlewriter.service.BookInProgressRedisService;
-import com.pkg.littlewriter.service.BookPageService;
-import com.pkg.littlewriter.service.BookService;
-import com.pkg.littlewriter.service.CharacterService;
+import com.pkg.littlewriter.service.*;
 import com.pkg.littlewriter.utils.S3BucketUtils;
+import com.pkg.littlewriter.utils.S3DirectoryEnum;
+import com.pkg.littlewriter.utils.S3File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,7 @@ public class BookController {
     @Autowired
     private BookInProgressRedisService bookInProgressRedisService;
     @Autowired
-    private S3BucketUtils s3BucketUtils;
+    private S3BucketService s3BucketService;
 
     @PostMapping("/{bookId}/insight")
     public ResponseEntity<?> generateBookInProgress(@PathVariable String bookId, @AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody PageProgressRequestDTO pageProgressRequestDTO) {
@@ -53,7 +52,6 @@ public class BookController {
         if (!currentBookId.equals(bookId)) {
             return ResponseEntity.badRequest().build();
         }
-        String uploadName = "temporary/" + currentBookId + "/" + UUID.randomUUID() + ".png";
         CharacterEntity characterEntity = characterService.getById(pageProgressRequestDTO.getCharacterId());
         CharacterDTO characterDTO = CharacterDTO.builder()
                 .name(characterEntity.getName())
@@ -68,8 +66,8 @@ public class BookController {
                 .build();
         try {
             QuestionAndImageDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
-            s3BucketUtils.uploadToS3BucketFromUrl(questionAndImageDTO.getTemporaryGeneratedImageUrl(), uploadName);
-            questionAndImageDTO.setTemporaryGeneratedImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
+            S3File temporaryUploadedFil = s3BucketService.uploadTemporaryFromUrl(questionAndImageDTO.getTemporaryGeneratedImageUrl());
+            questionAndImageDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFil.getUrl());
             ResponseDTO<QuestionAndImageDTO> responseDTO = ResponseDTO.<QuestionAndImageDTO>builder()
                     .data(List.of(questionAndImageDTO))
                     .build();
@@ -113,9 +111,8 @@ public class BookController {
                         .pageNumber(pageNumber[0]++).build())
                 .toList();
         pages.forEach(page -> {
-            String uploadName = customUserDetails.getUsername() + "/books/" + bookId + "/" + UUID.randomUUID() + ".png";
-            s3BucketUtils.copyFile(page.getImageUrl(), uploadName);
-            page.setImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
+            S3File backgroundImageFile = s3BucketService.copyTo(new S3File(page.getImageUrl()), S3DirectoryEnum.BOOK);
+            page.setImageUrl(backgroundImageFile.getUrl());
             bookPageService.createPage(page);
         });
         List<BookDTO> bookDTOS = bookService.getAllByUserId(customUserDetails.getId())
@@ -137,7 +134,6 @@ public class BookController {
     @PostMapping("init")
     public ResponseEntity<?> generateBackgroundImage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInitRequestDTO initRequestDTO) {
         String bookInProgressId = UUID.randomUUID().toString();
-        String uploadName = "temporary/" + bookInProgressId + "/" + UUID.randomUUID() + ".png";
         BookInProgressIdCache bookInProgressIdCache = BookInProgressIdCache.builder()
                 .bookId(bookInProgressId)
                 .userId(customUserDetails.getId().toString())
@@ -145,10 +141,10 @@ public class BookController {
         bookInProgressRedisService.save(bookInProgressIdCache);
         try {
             String generatedImageUrl = bookService.generateImageUrl(initRequestDTO.getBackgroundInfo());
-            s3BucketUtils.uploadToS3BucketFromUrl(generatedImageUrl, uploadName);
+            S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(generatedImageUrl);
             BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
                     .bookId(bookInProgressId)
-                    .imageUrl(s3BucketUtils.getBucketEndpoint() + uploadName)
+                    .imageUrl(temporaryUploadedFile.getUrl())
                     .build();
             ResponseDTO<BookInitResponseDTO> responseDTO = ResponseDTO.<BookInitResponseDTO>builder()
                     .data(List.of(bookInitResponseDTO))

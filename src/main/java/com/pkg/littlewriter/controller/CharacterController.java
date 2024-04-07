@@ -6,8 +6,10 @@ import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.pkg.littlewriter.domain.model.MemberEntity;
 import com.pkg.littlewriter.security.CustomUserDetails;
 import com.pkg.littlewriter.service.CharacterService;
+import com.pkg.littlewriter.service.S3BucketService;
 import com.pkg.littlewriter.service.UserService;
 import com.pkg.littlewriter.utils.S3BucketUtils;
+import com.pkg.littlewriter.utils.S3File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,18 +30,22 @@ public class CharacterController {
     UserService userService;
     @Autowired
     CharacterService characterService;
+//    @Autowired
+//    S3BucketUtils s3BucketUtils;
     @Autowired
-    S3BucketUtils s3BucketUtils;
+    S3BucketService s3BucketService;
 
     @PostMapping()
     public ResponseEntity<?> createCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value="image") MultipartFile image, CharacterDTO characterDTO) throws IOException {
         MemberEntity memberEntity = userService.getById(userDetails.getId());
-        String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
-        s3BucketUtils.uploadToS3Bucket(image, uploadName);
+//        String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
+//        s3BucketUtils.uploadToS3Bucket(image, uploadName);
+        S3File characterImageFile = s3BucketService.uploadCharacterImage(image);
         CharacterEntity newCharacter = CharacterEntity.builder()
                 .memberId(memberEntity.getId())
                 .name(characterDTO.getName())
-                .imageUrl(s3BucketUtils.getBucketEndpoint() + uploadName)
+//                .imageUrl(s3BucketUtils.getBucketEndpoint() + uploadName)
+                .imageUrl(characterImageFile.getUrl())
                 .personality(characterDTO.getPersonality())
                 .build();
         List<CharacterDTO> characters = characterService.create(newCharacter)
@@ -67,11 +73,14 @@ public class CharacterController {
 
     @PutMapping("/image")
     public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestParam(value="image") MultipartFile image, @RequestParam(value="id") Long characterId) throws IOException {
-        String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
-        s3BucketUtils.uploadToS3Bucket(image, uploadName);
+//        String uploadName = userDetails.getUsername() + "/character/" + UUID.randomUUID() + ".png";
+//        s3BucketUtils.uploadToS3Bucket(image, uploadName);
+        S3File characterImageFile = s3BucketService.uploadCharacterImage(image);
         CharacterEntity characterEntity = characterService.getById(characterId);
-        s3BucketUtils.deleteFromS3Bucket(characterEntity.getImageUrl());
-        characterEntity.setImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
+//        s3BucketUtils.deleteFromS3Bucket(characterEntity.getImageUrl());
+        s3BucketService.deleteFileFromS3(new S3File(characterEntity.getImageUrl()));
+//        characterEntity.setImageUrl(s3BucketUtils.getBucketEndpoint() + uploadName);
+        characterEntity.setImageUrl(characterImageFile.getUrl());
         List<CharacterDTO> characters = characterService.update(characterEntity)
                 .stream()
                 .map(CharacterDTO::new)
@@ -103,7 +112,8 @@ public class CharacterController {
             CharacterEntity targetEntity = characterService.getById(characterDTO.getId());
             targetEntity.setMemberId(userDetails.getId());
             log.info(targetEntity.getId().toString());
-            s3BucketUtils.deleteFromS3Bucket(targetEntity.getImageUrl());
+//            s3BucketUtils.deleteFromS3Bucket(targetEntity.getImageUrl());
+            s3BucketService.deleteFileFromS3(new S3File(targetEntity.getImageUrl()));
             List<CharacterEntity> characterEntities = characterService.delete(targetEntity);
             List<CharacterDTO> characterDTOS = characterEntities.stream()
                     .map(CharacterDTO::new)

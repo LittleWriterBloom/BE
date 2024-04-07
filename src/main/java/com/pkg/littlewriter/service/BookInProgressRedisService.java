@@ -35,13 +35,13 @@ public class BookInProgressRedisService {
         return hashOperations.hasKey(KEY, userIdString);
     }
 
+    public void delete(BookInProgressIdCache bookInProgressIdCache) {
+        validateBookInProgress(bookInProgressIdCache);
+        hashOperations.delete(KEY, bookInProgressIdCache.getUserId());
+    }
     private void validateBookInProgress(BookInProgressIdCache bookInProgressIdCache) {
         if(bookInProgressIdCache.getBookId() == null || bookInProgressIdCache.getUserId() == null) {
             throw new IllegalArgumentException("bookInProgress field cannot be null");
         }
-    }
-    public void delete(BookInProgressIdCache bookInProgressIdCache) {
-        validateBookInProgress(bookInProgressIdCache);
-        hashOperations.delete(KEY, bookInProgressIdCache.getUserId(), bookInProgressIdCache);
     }
 }
