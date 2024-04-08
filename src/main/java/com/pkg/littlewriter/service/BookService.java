@@ -4,6 +4,7 @@ import com.pkg.littlewriter.domain.AiBookCreationHelper;
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
 import com.pkg.littlewriter.domain.model.BookEntity;
 import com.pkg.littlewriter.dto.QuestionAndImageDTO;
+import com.pkg.littlewriter.dto.WordQuestionDTO;
 import com.pkg.littlewriter.persistence.BookPageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,10 @@ public class BookService {
 
     public String generateImageUrl(String keyword) {
         return aiBookCreationHelper.generateImageUrlFrom(keyword);
+    }
+
+    public String generateWordQuestionAnswer(WordQuestionDTO wordQuestionDTO) {
+        return aiBookCreationHelper.generateWordQuestionAnswer(wordQuestionDTO);
     }
 
     public BookEntity createEmptyBook(BookEntity bookEntity) {

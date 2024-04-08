@@ -3,6 +3,7 @@ package com.pkg.littlewriter.domain;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pkg.littlewriter.domain.generativeAi.*;
 import com.pkg.littlewriter.dto.QuestionAndImageDTO;
+import com.pkg.littlewriter.dto.WordQuestionDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,8 @@ public class AiBookCreationHelper {
     GenerativeAi keywordExtractor;
     @Autowired
     GenerativeAi keywordToImageGenerator;
+    @Autowired
+    GenerativeAi wordQuestionGenerator;
 
     public QuestionAndImageDTO generateQuestionAndImageFrom(BookInProgress bookInProgress) {
         BookInProgressJsonable bookInProgressJsonable = new BookInProgressJsonable(bookInProgress);
@@ -40,6 +43,16 @@ public class AiBookCreationHelper {
             ImageKeywordJsonable extractedKeywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
             return keywordToImageGenerator.getResponse(extractedKeywordJsonable).getMessage();
         } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String generateWordQuestionAnswer(WordQuestionDTO wordQuestionDTO) {
+        try{
+            WordQuestionJsonable wordQuestionJsonable = new WordQuestionJsonable(wordQuestionDTO);
+            GenerativeAiResponse answer = wordQuestionGenerator.getResponse(wordQuestionJsonable);
+            return answer.getMessage();
+        } catch (JsonProcessingException e ) {
             throw new RuntimeException(e);
         }
     }

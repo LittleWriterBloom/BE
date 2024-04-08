@@ -163,4 +163,13 @@ public class BookController {
             return ResponseEntity.ok().body(responseDTO);
         }
     }
+
+    @PostMapping("/dictionary")
+    public ResponseEntity<?> generateWordQuestionAnswer(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody WordQuestionDTO wordQuestionDTO) {
+        String answer = bookService.generateWordQuestionAnswer(wordQuestionDTO);
+        ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
+                .data(List.of(answer))
+                .build();
+        return ResponseEntity.ok().body(responseDTO);
+    }
 }
