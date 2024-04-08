@@ -67,8 +67,13 @@ public class BookController {
             QuestionAndImageDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
             S3File temporaryUploadedFil = s3BucketService.uploadTemporaryFromUrl(questionAndImageDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
             questionAndImageDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFil.getUrl());
-            ResponseDTO<QuestionAndImageDTO> responseDTO = ResponseDTO.<QuestionAndImageDTO>builder()
-                    .data(List.of(questionAndImageDTO))
+            PageProgressResponseDTO pageProgressResponseDTO = PageProgressResponseDTO.builder()
+                    .generatedBackgroundImageUrl(temporaryUploadedFil.getUrl())
+                    .generatedQuestions(questionAndImageDTO.getGeneratedQuestions())
+                    .currentPageNumber(pageProgressRequestDTO.getPreviousPages().size() + 1)
+                    .build();
+            ResponseDTO<PageProgressResponseDTO> responseDTO = ResponseDTO.<PageProgressResponseDTO>builder()
+                    .data(List.of(pageProgressResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
         } catch (IOException e) {

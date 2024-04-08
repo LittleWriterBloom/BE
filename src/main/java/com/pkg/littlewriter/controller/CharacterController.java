@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.io.IOException;
+
 import java.util.List;
 
 @Slf4j
@@ -42,12 +42,9 @@ public class CharacterController {
                 .imageUrl(characterImageFile.getUrl())
                 .personality(characterCreationRequestDTO.getPersonality())
                 .build();
-        List<CharacterDTO> characters = characterService.create(newCharacter)
-                .stream()
-                .map(CharacterDTO::new)
-                .toList();
+        CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
         ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                .data(characters)
+                .data(List.of(characters))
                 .build();
         return ResponseEntity.ok().body(responseDTO);
     }
@@ -66,7 +63,7 @@ public class CharacterController {
     }
 
     @PutMapping("/image")
-    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO, @RequestParam(value="id") Long characterId) {
+    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO, @RequestParam(value = "id") Long characterId) {
         S3File characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
         CharacterEntity characterEntity = characterService.getById(characterId);
         s3BucketService.deleteFileFromS3(new S3File(characterEntity.getImageUrl()));
@@ -82,7 +79,7 @@ public class CharacterController {
     }
 
     @PutMapping("/details")
-    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO){
+    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
         CharacterEntity targetCharacterEntity = characterService.getById(characterDTO.getId());
         targetCharacterEntity.setPersonality(characterDTO.getPersonality());
         targetCharacterEntity.setName(characterDTO.getName());
@@ -98,7 +95,7 @@ public class CharacterController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
-        try{
+        try {
             CharacterEntity targetEntity = characterService.getById(characterDTO.getId());
             targetEntity.setMemberId(userDetails.getId());
             s3BucketService.deleteFileFromS3(new S3File(targetEntity.getImageUrl()));

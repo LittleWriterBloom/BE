@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class PageDTO {
-    private String context;
-    private String backgroundImageUrl;
-    private String characterActionInfo;
-    private int pageNumber;
+public class PageProgressResponseDTO {
+    private String generatedQuestions;
+    private String generatedBackgroundImageUrl;
+    private int currentPageNumber;
 }

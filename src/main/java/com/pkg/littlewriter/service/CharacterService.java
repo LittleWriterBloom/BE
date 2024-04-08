@@ -16,10 +16,10 @@ public class CharacterService {
     @Autowired
     CharacterRepository characterRepository;
 
-    public List<CharacterEntity> create(CharacterEntity characterEntity) {
+    public CharacterEntity create(CharacterEntity characterEntity) {
         validate(characterEntity);
         characterRepository.save(characterEntity);
-        return characterRepository.findByMemberId(characterEntity.getMemberId());
+        return characterRepository.findById(characterEntity.getId()).orElseThrow();
     }
 
     public List<CharacterEntity> update(CharacterEntity characterEntity) {
