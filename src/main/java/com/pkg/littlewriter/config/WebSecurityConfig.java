@@ -36,7 +36,7 @@ public class WebSecurityConfig {
         http.csrf(csrf -> csrf.disable());
         http.cors(corsConfigurer -> corsConfigurer.configurationSource(littleWriterConfigSource));
         http.authorizeHttpRequests(configurer -> configurer
-                .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**", "/books/board/**", "/h2-console/**").permitAll()
+                .requestMatchers("/", "/auth/**", "swagger-ui/**", "/v3/api-docs/**", "/books/board/**", "/character/board/**","/h2-console/**").permitAll()
                 .anyRequest().authenticated()
         );
         http.oauth2Login(oauth2Login -> oauth2Login
