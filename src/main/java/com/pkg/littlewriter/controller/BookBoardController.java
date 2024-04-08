@@ -35,6 +35,7 @@ public class BookBoardController {
                         .context(page.getContext())
                         .backgroundImageUrl(page.getImageUrl())
                         .characterActionInfo(page.getActionInfo())
+                        .pageNumber(page.getPageNumber())
                         .build())
                 .collect(Collectors.toList());
         BookDTO bookDTO = BookDTO.builder()
