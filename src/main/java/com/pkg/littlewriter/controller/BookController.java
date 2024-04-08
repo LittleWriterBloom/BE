@@ -166,10 +166,17 @@ public class BookController {
 
     @PostMapping("/dictionary")
     public ResponseEntity<?> generateWordQuestionAnswer(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody WordQuestionDTO wordQuestionDTO) {
-        String answer = bookService.generateWordQuestionAnswer(wordQuestionDTO);
-        ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
-                .data(List.of(answer))
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
+        try {
+            String answer = bookService.generateWordQuestionAnswer(wordQuestionDTO);
+            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
+                    .data(List.of(answer))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (RuntimeException e) {
+            ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
+                    .error("cannot get response from openAi api")
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        }
     }
 }
