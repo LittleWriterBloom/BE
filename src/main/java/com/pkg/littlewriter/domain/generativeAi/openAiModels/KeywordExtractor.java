@@ -18,14 +18,15 @@ public class KeywordExtractor implements GenerativeAi {
     private OpenAiService openAiService;
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
-                    you're a helpful assistant that depict details to generate image using AI.
-                    using given json, depict last paragraph's background.
-                    you should follow
-                    - depict current background's details.
-                    - do not contain any characters
-                    - only answer with keywords, seperated by comma
-                    - answer must ends with ", no character, cartoon, background image"
-                    - answer in english"""
+                    you're a helpful assistant that depict details to generate image.
+                      using given json, depict last paragraph's background.
+                      you should follow
+                      - depict current background using base on "currentContext"
+                      - use simple sentence
+                      - do not contain any characters
+                      - do not contain adverbial clause
+                      - answer must ends with ", no character, cartoon"
+                      - answer in english"""
     );
 
     @Override

@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class BookInitResponseDTO {
-    String bookId;
-    String imageUrl;
+    private String bookId;
+    private BookInsightDTO bookInsightDTO;
 }

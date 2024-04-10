@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class PageProgressResponseDTO {
     private String generatedQuestions;
     private String generatedBackgroundImageUrl;
+    private String refinedSentence;
     private int currentPageNumber;
 }

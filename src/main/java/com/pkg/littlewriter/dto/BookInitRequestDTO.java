@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class BookInitRequestDTO {
+    private String firstContext;
     private String backgroundInfo;
     private Long characterId;
 }

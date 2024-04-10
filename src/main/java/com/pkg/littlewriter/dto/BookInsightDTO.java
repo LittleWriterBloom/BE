@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class QuestionAndImageDTO {
+public class BookInsightDTO {
     private String generatedQuestions;
     private String temporaryGeneratedImageUrl;
+    private String refinedContext;
 }

@@ -7,41 +7,34 @@ import com.pkg.littlewriter.domain.generativeAi.Jsonable;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-@NoArgsConstructor
-public class ContextQuestionGenerator implements GenerativeAi {
+public class ContextRefiner implements GenerativeAi {
     @Autowired
     private OpenAiService openAiService;
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
-                    you're a helpful assistant who helps fairytale writer to continue the story
-                    create a 3-question to help continuing fairytale story
-                    question must related to how the next story will be.
-                    questions should based on
-                    - character's traits
-                    - easy sentences
-                    - how to act like
-                    - how to converse with others
-                    - background of the story
-                    - last content of given story lines
-                    - be specific
-                    answer in Korean"""
+                    now you're a fairytale writer.
+                    generate sentences for fairytale.
+                    you should follow
+                    - if given sentences are awkward, change naturally
+                    - enrich sentences
+                    - answer in korean.
+                    - ~해요 체로 바꿔"""
     );
 
     @Override
-    public GenerativeAiResponse getResponse(Jsonable fairyTaleJsonable) throws JsonProcessingException {
-        ChatMessage fairyTaleInfo = new ChatMessage("user", fairyTaleJsonable.toJsonString());
+    public GenerativeAiResponse getResponse(Jsonable contextJsonable) throws JsonProcessingException {
+        ChatMessage fairyTaleInfo = new ChatMessage("user", contextJsonable.toJsonString());
         ChatCompletionRequest request = ChatCompletionRequest.builder()
-                .model(OpenAiModelEnum.GPT_3_5_TURBO_1106.getName())
+                .model(OpenAiModelEnum.GPT_4_TURBO_PREVIEW.getName())
                 .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
-                .temperature(0.6)
-                .maxTokens(1000)
+                .temperature(0.5)
+                .maxTokens(100)
                 .build();
         ChatMessage response = openAiService.createChatCompletion(request)
                 .getChoices()

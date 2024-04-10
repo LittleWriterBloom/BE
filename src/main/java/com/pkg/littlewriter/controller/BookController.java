@@ -1,6 +1,7 @@
 package com.pkg.littlewriter.controller;
 
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
+import com.pkg.littlewriter.domain.generativeAi.BookInit;
 import com.pkg.littlewriter.domain.model.BookEntity;
 import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.pkg.littlewriter.domain.model.PageEntity;
@@ -64,13 +65,14 @@ public class BookController {
                 .characterDTO(characterDTO)
                 .build();
         try {
-            QuestionAndImageDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
+            BookInsightDTO questionAndImageDTO = bookService.generateHelperContents(bookInProgress);
             S3File temporaryUploadedFil = s3BucketService.uploadTemporaryFromUrl(questionAndImageDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
             questionAndImageDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFil.getUrl());
             PageProgressResponseDTO pageProgressResponseDTO = PageProgressResponseDTO.builder()
                     .generatedBackgroundImageUrl(temporaryUploadedFil.getUrl())
                     .generatedQuestions(questionAndImageDTO.getGeneratedQuestions())
                     .currentPageNumber(pageProgressRequestDTO.getPreviousPages().size() + 1)
+                    .refinedSentence(questionAndImageDTO.getRefinedContext())
                     .build();
             ResponseDTO<PageProgressResponseDTO> responseDTO = ResponseDTO.<PageProgressResponseDTO>builder()
                     .data(List.of(pageProgressResponseDTO))
@@ -136,7 +138,7 @@ public class BookController {
     }
 
     @PostMapping("init")
-    public ResponseEntity<?> generateBackgroundImage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInitRequestDTO initRequestDTO) {
+    public ResponseEntity<?> generateBackgroundImage(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInitRequestDTO initRequestDTO) throws IOException {
         String bookInProgressId = UUID.randomUUID().toString();
         BookInProgressIdCache bookInProgressIdCache = BookInProgressIdCache.builder()
                 .bookId(bookInProgressId)
@@ -144,18 +146,23 @@ public class BookController {
                 .build();
         bookInProgressRedisService.save(bookInProgressIdCache);
         try {
-            String generatedImageUrl = bookService.generateImageUrl(initRequestDTO.getBackgroundInfo());
-            S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(generatedImageUrl, S3DirectoryEnum.TEMPORARY);
+            CharacterEntity characterEntity = characterService.getById(initRequestDTO.getCharacterId());
+            BookInit bookInit = BookInit.builder()
+                    .backgroundInfo(initRequestDTO.getBackgroundInfo())
+                    .currentContext(initRequestDTO.getFirstContext())
+                    .characterDTO(new CharacterDTO(characterEntity))
+                    .build();
+            BookInsightDTO bookInsightDTO = bookService.generateHelperContents(bookInit);
+            S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(bookInsightDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
+            bookInsightDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFile.getUrl());
             BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
                     .bookId(bookInProgressId)
-                    .imageUrl(temporaryUploadedFile.getUrl())
+                    .bookInsightDTO(bookInsightDTO)
                     .build();
             ResponseDTO<BookInitResponseDTO> responseDTO = ResponseDTO.<BookInitResponseDTO>builder()
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (RuntimeException e) {
             ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
                     .error("cannot get response from openAi api")

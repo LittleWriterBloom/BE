@@ -2,8 +2,9 @@ package com.pkg.littlewriter.service;
 
 import com.pkg.littlewriter.domain.AiBookCreationHelper;
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
+import com.pkg.littlewriter.domain.generativeAi.BookInit;
 import com.pkg.littlewriter.domain.model.BookEntity;
-import com.pkg.littlewriter.dto.QuestionAndImageDTO;
+import com.pkg.littlewriter.dto.BookInsightDTO;
 import com.pkg.littlewriter.dto.WordQuestionDTO;
 import com.pkg.littlewriter.persistence.BookPageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,12 @@ public class BookService {
     @Autowired
     private BookPageRepository bookRepository;
 
-    public QuestionAndImageDTO generateHelperContents(BookInProgress bookInProgress) {
-        return  aiBookCreationHelper.generateQuestionAndImageFrom(bookInProgress);
+    public BookInsightDTO generateHelperContents(BookInProgress bookInProgress) {
+        return  aiBookCreationHelper.generateBookInsightFrom(bookInProgress);
+    }
+
+    public BookInsightDTO generateHelperContents(BookInit bookInit) {
+        return  aiBookCreationHelper.generateBookInsightFrom(bookInit);
     }
 
     public String generateImageUrl(String keyword) {
