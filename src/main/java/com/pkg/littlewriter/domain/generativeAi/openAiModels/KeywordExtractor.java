@@ -33,7 +33,7 @@ public class KeywordExtractor implements GenerativeAi {
     public GenerativeAiResponse getResponse(Jsonable contextJsonable) throws JsonProcessingException {
         ChatMessage fairyTaleInfo = new ChatMessage("user", contextJsonable.toJsonString());
         ChatCompletionRequest request = ChatCompletionRequest.builder()
-                .model(OpenAiModelEnum.GPT_4.getName())
+                .model(OpenAiModelEnum.GPT_4_TURBO_PREVIEW.getName())
                 .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
                 .temperature(0.5)
                 .maxTokens(100)

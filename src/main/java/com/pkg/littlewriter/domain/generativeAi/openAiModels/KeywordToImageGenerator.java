@@ -15,11 +15,11 @@ public class KeywordToImageGenerator implements GenerativeAi {
     @Autowired
     private OpenAiService openAiService;
     private static final String BASIC_PROMPT = """
-                                       draw a cartoon illustration for kids about
+                                       draw a cartoon illustration about
             """;
     private static final String STYLE_PROMPT = """
-            + "A huge apple is flying away into space, no character, cartoon" +
             you must follow
+            - do not contain any characters
             - using very thick and heavy black strokes for borderlines,
             - draw objects with simplicity
             - do not draw small objects

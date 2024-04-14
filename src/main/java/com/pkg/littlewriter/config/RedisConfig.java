@@ -1,6 +1,6 @@
 package com.pkg.littlewriter.config;
 
-import com.pkg.littlewriter.domain.model.redis.BookInProgressIdCache;
+import com.pkg.littlewriter.domain.model.redis.BookInProgressRedis;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,10 +26,10 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, BookInProgressIdCache> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<String, BookInProgressIdCache> template = new RedisTemplate<>();
+    public RedisTemplate<String, BookInProgressRedis> bookInProgressRedisRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, BookInProgressRedis> template = new RedisTemplate<>();
         template.setDefaultSerializer(RedisSerializer.string());
-        template.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(BookInProgressIdCache.class));
+        template.setHashValueSerializer(new Jackson2JsonRedisSerializer<>(BookInProgressRedis.class));
         template.setConnectionFactory(redisConnectionFactory);
         return template;
     }

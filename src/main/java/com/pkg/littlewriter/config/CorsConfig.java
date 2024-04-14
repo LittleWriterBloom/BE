@@ -16,10 +16,12 @@ public class CorsConfig {
     public CorsConfigurationSource littleWriterCorsConfigSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:5173", "https://littlewriter.site"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("*"));
+//        config.setAllowedOrigins(List.of("http://localhost:5173", "https://littlewriter.site"));
+//        config.setAllowedOrigins(List.of("http://localhost:5173", "https://littlewriter.site"));
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

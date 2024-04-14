@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 public class WordQuestionGenerator implements GenerativeAi {
@@ -26,6 +27,7 @@ public class WordQuestionGenerator implements GenerativeAi {
             first-sentence : explain words in a simple and easy way include dictionary definition. Do not use asked words while explaining it.
             second-sentence: give a simple example of usage and explain.
             use only Korean""");
+
     @Override
     public GenerativeAiResponse getResponse(Jsonable jsonable) throws JsonProcessingException {
         ChatMessage userRequestMessage = new ChatMessage("user", jsonable.toJsonString());

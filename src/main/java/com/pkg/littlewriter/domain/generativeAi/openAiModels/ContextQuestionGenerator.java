@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @NoArgsConstructor
@@ -21,10 +22,11 @@ public class ContextQuestionGenerator implements GenerativeAi {
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
                     you're a helpful assistant who helps fairytale writer to continue the story
-                    create a 3-question to help continuing fairytale story
+                    create one-sentence-question to help continuing fairytale story
                     question must related to how the next story will be.
                     questions should based on
                     - character's traits
+                    - under 30 letters
                     - easy sentences
                     - how to act like
                     - how to converse with others
@@ -48,5 +50,21 @@ public class ContextQuestionGenerator implements GenerativeAi {
                 .get(0)
                 .getMessage();
         return new GptResponse(response);
+    }
+
+    public List<GenerativeAiResponse> get3Responses(Jsonable fairyTaleJsonable) throws JsonProcessingException {
+        ChatMessage fairyTaleInfo = new ChatMessage("user", fairyTaleJsonable.toJsonString());
+        ChatCompletionRequest request = ChatCompletionRequest.builder()
+                .n(3)
+                .model(OpenAiModelEnum.GPT_3_5_TURBO_1106.getName())
+                .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
+                .temperature(0.6)
+                .maxTokens(1000)
+                .build();
+        return openAiService.createChatCompletion(request)
+                .getChoices()
+                .stream()
+                .map(chatCompletionChoice -> new GptResponse(chatCompletionChoice.getMessage()))
+                .collect(Collectors.toList());
     }
 }

@@ -2,18 +2,20 @@ package com.pkg.littlewriter.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pkg.littlewriter.domain.generativeAi.*;
-import com.pkg.littlewriter.dto.BookInitRequestDTO;
+import com.pkg.littlewriter.domain.generativeAi.openAiModels.ContextQuestionGenerator;
 import com.pkg.littlewriter.dto.BookInsightDTO;
 import com.pkg.littlewriter.dto.WordQuestionDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @AllArgsConstructor
 public class AiBookCreationHelper {
     @Autowired
-    GenerativeAi contextQuestionGenerator;
+    ContextQuestionGenerator contextQuestionGenerator;
     @Autowired
     GenerativeAi keywordExtractor;
     @Autowired
@@ -26,18 +28,14 @@ public class AiBookCreationHelper {
     public BookInsightDTO generateBookInsightFrom(BookInProgress bookInProgress) {
         BookInProgressJsonable bookInProgressJsonable = new BookInProgressJsonable(bookInProgress);
         try {
-            GenerativeAiResponse contextQuestionResponse = contextQuestionGenerator.getResponse(bookInProgressJsonable);
-            GenerativeAiResponse extractedKeywords = keywordExtractor.getResponse(bookInProgressJsonable);
-            ImageKeywordJsonable keywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
-            GenerativeAiResponse imageUrlResponse = keywordToImageGenerator.getResponse(keywordJsonable);
-            GenerativeAiResponse refinedContext = contextRefiner.getResponse(new Jsonable() {
-                @Override
-                public String toJsonString() throws JsonProcessingException {
-                    return bookInProgress.getCurrentContext();
-                }
-            });
+            List<String> questions = contextQuestionGenerator.get3Responses(bookInProgressJsonable)
+                    .stream()
+                    .map(GenerativeAiResponse::getMessage)
+                    .toList();
+            GenerativeAiResponse refinedContext = getRefinedContext(bookInProgress);
+            GenerativeAiResponse imageUrlResponse = getImageUrlResponse(bookInProgressJsonable);
             return BookInsightDTO.builder()
-                    .generatedQuestions(contextQuestionResponse.getMessage())
+                    .generatedQuestions(questions)
                     .temporaryGeneratedImageUrl(imageUrlResponse.getMessage())
                     .refinedContext(refinedContext.getMessage())
                     .build();
@@ -46,10 +44,32 @@ public class AiBookCreationHelper {
         }
     }
 
+    private GenerativeAiResponse getImageUrlResponse(BookInProgressJsonable bookInProgressJsonable) throws JsonProcessingException {
+        GenerativeAiResponse extractedKeywords = keywordExtractor.getResponse(bookInProgressJsonable);
+        ImageKeywordJsonable keywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
+        return keywordToImageGenerator.getResponse(keywordJsonable);
+    }
+
+    private GenerativeAiResponse getRefinedContext(BookInProgress bookInProgress) throws JsonProcessingException {
+        return contextRefiner.getResponse(new Jsonable() {
+            @Override
+            public String toJsonString() throws JsonProcessingException {
+                return bookInProgress.getCurrentContext();
+            }
+        });
+    }
+
+    private GenerativeAiResponse getQuestions(BookInProgressJsonable bookInProgressJsonable) throws JsonProcessingException {
+        return contextQuestionGenerator.getResponse(bookInProgressJsonable);
+    }
+
     public BookInsightDTO generateBookInsightFrom(BookInit bookInit) {
         BookInitJsonable bookInProgressJsonable = new BookInitJsonable(bookInit);
         try {
-            GenerativeAiResponse contextQuestionResponse = contextQuestionGenerator.getResponse(bookInProgressJsonable);
+            List<String> questions = contextQuestionGenerator.get3Responses(bookInProgressJsonable)
+                    .stream()
+                    .map(GenerativeAiResponse::getMessage)
+                    .toList();
             GenerativeAiResponse extractedKeywords = keywordExtractor.getResponse(bookInProgressJsonable);
             ImageKeywordJsonable keywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
             GenerativeAiResponse imageUrlResponse = keywordToImageGenerator.getResponse(keywordJsonable);
@@ -60,7 +80,7 @@ public class AiBookCreationHelper {
                 }
             });
             return BookInsightDTO.builder()
-                    .generatedQuestions(contextQuestionResponse.getMessage())
+                    .generatedQuestions(questions)
                     .temporaryGeneratedImageUrl(imageUrlResponse.getMessage())
                     .refinedContext(refinedContext.getMessage())
                     .build();
@@ -81,11 +101,11 @@ public class AiBookCreationHelper {
     }
 
     public String generateWordQuestionAnswer(WordQuestionDTO wordQuestionDTO) {
-        try{
+        try {
             WordQuestionJsonable wordQuestionJsonable = new WordQuestionJsonable(wordQuestionDTO);
             GenerativeAiResponse answer = wordQuestionGenerator.getResponse(wordQuestionJsonable);
             return answer.getMessage();
-        } catch (JsonProcessingException e ) {
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
