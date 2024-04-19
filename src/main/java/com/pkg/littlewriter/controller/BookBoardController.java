@@ -42,6 +42,8 @@ public class BookBoardController {
                 .pages(pageDTOs)
                 .createDate(bookEntity.getCreateDate())
                 .title(bookEntity.getTitle())
+                .bookColor(bookEntity.getBookColor())
+                .author(bookEntity.getAuthor())
                 .build();
         ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
                 .data(List.of(bookDTO))
@@ -59,6 +61,8 @@ public class BookBoardController {
                         .characterId(book.getCharacterId())
                         .title(book.getTitle())
                         .createDate(book.getCreateDate())
+                        .bookColor(book.getBookColor())
+                        .author(book.getAuthor())
                         .build())
                 .collect(Collectors.toList());
         ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()

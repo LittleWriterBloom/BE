@@ -23,4 +23,6 @@ public class BookEntity {
     @Temporal(TemporalType.TIMESTAMP)
 
     private Date createDate;
+    private Long bookColor;
+    private String author;
 }

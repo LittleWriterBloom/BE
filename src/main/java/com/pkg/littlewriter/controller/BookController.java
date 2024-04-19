@@ -95,6 +95,8 @@ public class BookController {
                 .title(bookCompleteRequestDTO.getTitle())
                 .userId(customUserDetails.getId())
                 .createDate(Date.from(Instant.now()))
+                .bookColor(bookCompleteRequestDTO.getBookColor())
+                .author(bookCompleteRequestDTO.getAuthor())
                 .build();
         bookService.createEmptyBook(bookEntity);
         int[] pageNumber = {0};
@@ -119,6 +121,8 @@ public class BookController {
                         .id(book.getId())
                         .userId(book.getUserId())
                         .characterId(book.getCharacterId())
+                        .author(book.getAuthor())
+                        .bookColor(book.getBookColor())
                         .build())
                 .collect(Collectors.toList());
         ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()

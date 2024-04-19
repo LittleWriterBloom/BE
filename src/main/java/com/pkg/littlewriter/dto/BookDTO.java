@@ -22,4 +22,6 @@ public class BookDTO {
     private Long characterId;
     private List<PageDTO> pages;
     private Date createDate;
+    private Long bookColor;
+    private String author;
 }

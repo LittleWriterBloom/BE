@@ -11,4 +11,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class BookCompleteRequestDTO {
     private String title;
+    private String author;
+    private Long bookColor;
 }
