@@ -1,4 +1,4 @@
-package com.pkg.littlewriter.service;
+package com.pkg.littlewriter.service.redis;
 
 
 import com.pkg.littlewriter.domain.model.redis.BookInProgressRedis;

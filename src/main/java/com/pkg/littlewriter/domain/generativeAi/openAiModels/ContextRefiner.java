@@ -34,7 +34,7 @@ public class ContextRefiner implements GenerativeAi {
                 .model(OpenAiModelEnum.GPT_4_TURBO_PREVIEW.getName())
                 .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
                 .temperature(0.5)
-                .maxTokens(100)
+                .maxTokens(300)
                 .build();
         ChatMessage response = openAiService.createChatCompletion(request)
                 .getChoices()

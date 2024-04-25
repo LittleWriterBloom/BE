@@ -22,7 +22,7 @@ public class ContextQuestionGenerator implements GenerativeAi {
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
                     you're a helpful assistant who helps fairytale writer to continue the story
-                    create one-sentence-question to help continuing fairytale story
+                    create 3-questions seperated by escape letter to help continuing fairytale story
                     question must related to how the next story will be.
                     questions should based on
                     - character's traits
@@ -33,6 +33,7 @@ public class ContextQuestionGenerator implements GenerativeAi {
                     - background of the story
                     - last content of given story lines
                     - be specific
+                    - question must be seperated by comma escape letter : eg) question1 \n question2 \n question
                     answer in Korean"""
     );
 
@@ -40,7 +41,7 @@ public class ContextQuestionGenerator implements GenerativeAi {
     public GenerativeAiResponse getResponse(Jsonable fairyTaleJsonable) throws JsonProcessingException {
         ChatMessage fairyTaleInfo = new ChatMessage("user", fairyTaleJsonable.toJsonString());
         ChatCompletionRequest request = ChatCompletionRequest.builder()
-                .model(OpenAiModelEnum.GPT_3_5_TURBO_1106.getName())
+                .model(OpenAiModelEnum.GPT_4_TURBO_PREVIEW.getName())
                 .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
                 .temperature(0.6)
                 .maxTokens(1000)

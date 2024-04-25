@@ -1,12 +1,12 @@
 package com.pkg.littlewriter.controller;
 
 import com.pkg.littlewriter.domain.model.BookEntity;
-import com.pkg.littlewriter.dto.BookDTO;
-import com.pkg.littlewriter.dto.PageDTO;
-import com.pkg.littlewriter.dto.ResponseDTO;
+import com.pkg.littlewriter.domain.model.CharacterEntity;
+import com.pkg.littlewriter.dto.*;
 import com.pkg.littlewriter.security.CustomUserDetails;
 import com.pkg.littlewriter.service.BookPageService;
 import com.pkg.littlewriter.service.BookService;
+import com.pkg.littlewriter.service.CharacterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +25,8 @@ public class BookBoardController {
     private BookService bookService;
     @Autowired
     private BookPageService bookPageService;
+    @Autowired
+    private CharacterService characterService;
 
     @GetMapping("/{bookId}")
     public ResponseEntity<?> getBook(@PathVariable String bookId) {
@@ -45,8 +47,20 @@ public class BookBoardController {
                 .bookColor(bookEntity.getBookColor())
                 .author(bookEntity.getAuthor())
                 .build();
-        ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
-                .data(List.of(bookDTO))
+        CharacterEntity characterEntity = characterService.getById(bookEntity.getCharacterId());
+        CharacterDTO characterDTO = CharacterDTO.builder()
+                .id(characterEntity.getId())
+                .name(characterEntity.getName())
+                .description(characterEntity.getUserDescription())
+                .appearanceKeywords(characterEntity.getAppearanceKeywords())
+                .imageUrl(characterEntity.getImageUrl())
+                .aiGeneratedImageUrl(characterEntity.getAiGeneratedImageUrl())
+                .build();
+        BookDetailDTO bookDetail = BookDetailDTO.builder()
+                .book(bookDTO)
+                .character(characterDTO).build();
+        ResponseDTO<BookDetailDTO> responseDTO = ResponseDTO.<BookDetailDTO>builder()
+                .data(List.of(bookDetail))
                 .build();
         return ResponseEntity.ok().body(responseDTO);
     }
@@ -54,20 +68,35 @@ public class BookBoardController {
     @GetMapping("/my")
     public ResponseEntity<?> getBook(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
         List<BookEntity> bookEntity = bookService.getAllByUserId(customUserDetails.getId());
-        List<BookDTO> bookDTOs = bookEntity.stream()
-                .map(book -> BookDTO.builder()
-                        .id(book.getId())
-                        .userId(book.getUserId())
-                        .characterId(book.getCharacterId())
+        List<BookCoverDTO> bookCoverDTOs = bookEntity.stream()
+                .map(book -> BookCoverDTO.builder()
+                        .firstPageImageUrl(getFirstImageUrl(book))
+                        .userId(book.getUserId().toString())
+                        .author(book.getAuthor())
                         .title(book.getTitle())
+                        .character(getCharacterDTO(book))
                         .createDate(book.getCreateDate())
                         .bookColor(book.getBookColor())
-                        .author(book.getAuthor())
                         .build())
                 .collect(Collectors.toList());
-        ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
-                .data(bookDTOs)
+        ResponseDTO<BookCoverDTO> responseDTO = ResponseDTO.<BookCoverDTO>builder()
+                .data(bookCoverDTOs)
                 .build();
         return ResponseEntity.ok().body(responseDTO);
+    }
+
+    private String getFirstImageUrl(BookEntity book) {
+        return bookPageService.getAllById(book.getId()).get(0).getImageUrl();
+    }
+
+    private CharacterDTO getCharacterDTO(BookEntity bookEntity) {
+
+        CharacterEntity characterEntity = characterService.getById(bookEntity.getCharacterId());
+        return CharacterDTO.builder()
+                .name(characterEntity.getName())
+                .personality(characterEntity.getPersonality())
+                .imageUrl(characterEntity.getImageUrl())
+                .aiGeneratedImageUrl(characterEntity.getAiGeneratedImageUrl())
+                .build();
     }
 }

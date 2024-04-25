@@ -13,20 +13,27 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class KeywordExtractor implements GenerativeAi {
+public class KeywordExtractorStableDiffusion implements GenerativeAi {
     @Autowired
     private OpenAiService openAiService;
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
                     you're a helpful assistant that depict details to generate image.
-                      using given json, depict last context's background.
-                      you should follow
-                      - depict surrounding objects or encounters
-                      - depict current background using base on "currentContext"
-                      - depict very specifically and imagine the scenery when lack of information, using 3 sentences
-                      - do not contain adverbial clause
-                      - answer must ends with ", no main character"
-                      - answer in english"""
+                    using given json, depict background.
+                    characters descriptions and appearance details will be given.
+                    you should follow
+                    - depict current background using base on "currentContext"
+                    - use simple sentence
+                    - depict current context's objects.
+                    - first sentence : depict background using "currentContext" and "backgroundInfo"
+                    - second sentence : depict main character using "characterAppearanceKeywords" and "characterDescription".
+                    - third sentence : depict the light and facial expression.
+                    - sentence is made of keywords, seperated by comma
+                    for example:
+                    forest with dark light, wooden hut in the background
+                    a boy with short hair, yellow striped shirt, blue sneakers, with long black hair and red jeans.
+                    surprising face, dark, dim light
+                    answer only in english"""
     );
 
     @Override
@@ -36,13 +43,13 @@ public class KeywordExtractor implements GenerativeAi {
                 .model(OpenAiModelEnum.GPT_4_TURBO_PREVIEW.getName())
                 .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
                 .temperature(0.5)
-                .maxTokens(1000)
+                .maxTokens(100)
                 .build();
         ChatMessage response = openAiService.createChatCompletion(request)
                 .getChoices()
                 .get(0)
                 .getMessage();
-        System.out.println(response.getContent());
         return new GptResponse(response);
     }
 }
+

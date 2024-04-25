@@ -13,20 +13,22 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class KeywordExtractor implements GenerativeAi {
+public class ContextEnricher implements GenerativeAi {
+
     @Autowired
     private OpenAiService openAiService;
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
-                    you're a helpful assistant that depict details to generate image.
-                      using given json, depict last context's background.
-                      you should follow
-                      - depict surrounding objects or encounters
-                      - depict current background using base on "currentContext"
-                      - depict very specifically and imagine the scenery when lack of information, using 3 sentences
-                      - do not contain adverbial clause
-                      - answer must ends with ", no main character"
-                      - answer in english"""
+                    now you're a fairytale writer.
+                    generate sentences for fairytale.
+                    you should follow
+                    - if given sentences are awkward, change naturally
+                    - enrich given sentence to 3 - 5 sentences with details
+                    - imagine the details when lack of information
+                    - can contain conversations with other character
+                    - enrich sentences
+                    - answer in korean.
+                    - ~해요 체로 바꿔"""
     );
 
     @Override
@@ -42,7 +44,6 @@ public class KeywordExtractor implements GenerativeAi {
                 .getChoices()
                 .get(0)
                 .getMessage();
-        System.out.println(response.getContent());
         return new GptResponse(response);
     }
 }

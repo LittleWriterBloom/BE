@@ -7,6 +7,7 @@ import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.request.Text
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.*;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.fetch.FetchSuccessResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.imageToimage.ImageToImageProcessingResponse;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.imageToimage.ImageToImageSuccessResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.textToimage.TextToImageProcessingResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.textToimage.TextToImageSuccessResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ public class StableDiffusionImpl implements StableDiffusion {
                 .height("512")
                 .width("512")
                 .samples("1")
+                .upscale("2")
+                .negativePrompt("duplicated characters, Bad anatomy, deformed, extra arms, extra limbs, extra hands, fused fingers, gross proportions, low quality")
+                .selfAttention("yes")
                 .loraStrength(1f)
                 .build();
         Response<?> response = api.getTextToImageResponse(text2image);
@@ -60,15 +64,19 @@ public class StableDiffusionImpl implements StableDiffusion {
                 .modelId("v1-5-pruned-v6")
                 .controlnetModel("scribble")
                 .controlnetType("scribble")
+                .controlnetConditioningScale(0.5f)
                 .loraModel("kids-illustration")
                 .strength(1.0f)
+                .guessMode("no")
+                .useKarrasSigmas("yes")
                 .scheduler("EulerDiscreteScheduler")
+                .multiLingual("yes")
                 .samples("1")
                 .tomesd("yes")
                 .build();
         Response<?> response = api.getImageToImageResponse(requestBody);
         if (response.isDone()) {
-            TextToImageSuccessResponse successStatus = (TextToImageSuccessResponse) response.getInstance();
+            ImageToImageSuccessResponse successStatus = (ImageToImageSuccessResponse) response.getInstance();
             return ImageResponse.builder()
                     .isDone(true)
                     .imageUrl(successStatus.getOutput().get(0))

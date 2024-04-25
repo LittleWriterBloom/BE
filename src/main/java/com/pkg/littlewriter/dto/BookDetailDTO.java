@@ -5,13 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CharacterCreationRequestDTO {
-    private String name;
-    private String personality;
-    private String base64Image;
-    private String description;
+@Data
+public class BookDetailDTO {
+    private BookDTO book;
+    private CharacterDTO character;
 }

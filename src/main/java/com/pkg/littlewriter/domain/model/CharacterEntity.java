@@ -19,6 +19,9 @@ public class CharacterEntity {
     private String name;
     private String personality;
     private String imageUrl;
+    private String userDescription;
+    private String appearanceKeywords;
+    private String aiGeneratedImageUrl;
     @Column(nullable = false)
     private Long memberId;
 }

@@ -14,17 +14,18 @@ import org.springframework.stereotype.Component;
 public class KeywordToImageGenerator implements GenerativeAi {
     @Autowired
     private OpenAiService openAiService;
-    private static final String BASIC_PROMPT = """
-                                       draw a cartoon illustration about
-            """;
-    private static final String STYLE_PROMPT = """
-            you must follow
-            - do not contain any characters
-            - using very thick and heavy black strokes for borderlines,
-            - draw objects with simplicity
-            - do not draw small objects
-            - using soft, vivid, bright and similar color
-            - using Eric Carl's illustration style""";
+//    private static final String BASIC_PROMPT = """
+//                                       draw a cartoon illustration about
+//            """;
+//    private static final String STYLE_PROMPT = """
+//            you must follow
+//            - do not contain any characters
+//            - using very thick and heavy black strokes for borderlines,
+//            - draw objects with simplicity
+//            - do not draw small objects
+//            - using soft, vivid, bright and similar color
+//            - using Eric Carl's illustration style""";
+    private static final String STYLE_PROMPT = " cute children's simple cartoon illustration. vivid color, flat 2D with simple shading";
 
     @Override
     public GenerativeAiResponse getResponse(Jsonable keyWordJsonable) throws JsonProcessingException {
@@ -32,7 +33,7 @@ public class KeywordToImageGenerator implements GenerativeAi {
         CreateImageRequest request = CreateImageRequest.builder()
                 .model(OpenAiModelEnum.DALL_E_2.getName())
                 .quality("standard")
-                .size("512x512")
+                .size("1024x1024")
                 .prompt(createPrompt(imageKeywordJsonable.getKeyword()))
                 .n(1)
                 .build();
@@ -44,6 +45,6 @@ public class KeywordToImageGenerator implements GenerativeAi {
     }
 
     private String createPrompt(String keywords) {
-        return BASIC_PROMPT + keywords + STYLE_PROMPT;
+        return keywords + STYLE_PROMPT;
     };
 }

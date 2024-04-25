@@ -13,8 +13,12 @@ import lombok.EqualsAndHashCode;
 public class CharacterJsonable extends Jsonable {
     private String name;
     private String personality;
+    private String appearanceKeywords;
+    private String description;
     public CharacterJsonable(CharacterDTO characterDTO) {
         this.name = characterDTO.getName();
         this.personality = characterDTO.getPersonality();
+        this.appearanceKeywords = characterDTO.getAppearanceKeywords();
+        this.description = characterDTO.getDescription();
     }
 }

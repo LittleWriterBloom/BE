@@ -213,4 +213,10 @@ public class TextToImageRequestBody {
      * Create temp image link. This link is valid for 24 hours. temp: yes, options: yes/no
      */
     private String temp;
+
+    /**
+     * Instant response with fetch
+     */
+    @Builder.Default
+    private String instantResponse = "yes";
 }

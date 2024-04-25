@@ -1,6 +1,7 @@
 package com.pkg.littlewriter.service;
 
-import com.pkg.littlewriter.domain.AiBookCreationHelper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.pkg.littlewriter.domain.generativeAi.AiBookCreationHelper;
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
 import com.pkg.littlewriter.domain.generativeAi.BookInit;
 import com.pkg.littlewriter.domain.model.BookEntity;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class BookService {
@@ -19,12 +21,20 @@ public class BookService {
     @Autowired
     private BookPageRepository bookRepository;
 
-    public BookInsightDTO generateHelperContents(BookInProgress bookInProgress) {
+    public BookInsightDTO generateHelperContents(BookInProgress bookInProgress) throws ExecutionException, JsonProcessingException, InterruptedException {
         return  aiBookCreationHelper.generateBookInsightFrom(bookInProgress);
     }
 
-    public BookInsightDTO generateHelperContents(BookInit bookInit) {
+    public BookInsightDTO generateHelperContents(BookInit bookInit) throws ExecutionException, JsonProcessingException, InterruptedException {
         return  aiBookCreationHelper.generateBookInsightFrom(bookInit);
+    }
+
+    public BookInsightDTO generateHelperContents2(BookInit bookInit) {
+        return  aiBookCreationHelper.generateBookInsightFrom2(bookInit);
+    }
+
+    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) {
+        return  aiBookCreationHelper.generateBookInsightFrom2(bookInProgress);
     }
 
     public String generateImageUrl(String keyword) {

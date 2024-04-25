@@ -41,7 +41,6 @@ public class StableDiffusionApi {
                 .build();
         HttpClient client = HttpClient.newHttpClient();
         String response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-        System.out.println(response);
         JsonNode jsonNode = MAPPER.readTree(response);
         if(jsonNode.get("status").textValue().equals("success")) {
             return new Response<>(response, TextToImageSuccessResponse.class);
@@ -57,16 +56,14 @@ public class StableDiffusionApi {
                 .build();
         HttpClient client = HttpClient.newHttpClient();
         String response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-        System.out.println(response);
         JsonNode jsonNode = MAPPER.readTree(response);
-        if(jsonNode.get("status").equals("success")) {
+        if(jsonNode.get("status").textValue().equals("success")) {
             return new Response<>(response, ImageToImageSuccessResponse.class);
         }
         return new Response<>(response, ImageToImageProcessingResponse.class);
     }
 
     public Response<?> getFetchResponse(FetchRequestBody fetchRequestBody) throws IOException, InterruptedException {
-        System.out.println(MAPPER.writeValueAsString(fetchRequestBody));
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + FETCH_ENDPOINT))
                 .header("Content-Type", "application/json")
@@ -74,7 +71,6 @@ public class StableDiffusionApi {
                 .build();
         HttpClient client = HttpClient.newHttpClient();
         String response = client.send(request, HttpResponse.BodyHandlers.ofString()).body();
-        System.out.println(response);
         JsonNode jsonNode = MAPPER.readTree(response);
         if(jsonNode.get("status").textValue().equals("success")) {
             return new Response<>(response, FetchSuccessResponse.class);
