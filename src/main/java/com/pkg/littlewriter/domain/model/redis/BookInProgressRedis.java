@@ -16,4 +16,5 @@ public class BookInProgressRedis {
     private Long characterId;
     private Long userId;
     private List<PageDTO> previousPages;
+    private int storyLength;
 }

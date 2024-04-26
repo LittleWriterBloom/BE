@@ -77,6 +77,7 @@ public class BookBoardController {
                         .character(getCharacterDTO(book))
                         .createDate(book.getCreateDate())
                         .bookColor(book.getBookColor())
+                        .storyLength(book.getStoryLength())
                         .build())
                 .collect(Collectors.toList());
         ResponseDTO<BookCoverDTO> responseDTO = ResponseDTO.<BookCoverDTO>builder()

@@ -11,9 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class PageProgressResponseDTO {
-    private List<String> generatedQuestions;
-    private String generatedBackgroundImageUrl;
-    private String refinedSentence;
-    private int currentPageNumber;
+public class BookInsightResponseDTO {
+    private BookInsightDTO bookInsight;
+    private List<PageDTO> createdPages;
+    private int storyLength;
 }

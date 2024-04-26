@@ -65,9 +65,13 @@ public class AiBookCreationHelper {
     public BookInsightDTO generateBookInsightFrom2(BookInProgress bookInProgress) {
         BookInProgressJsonable bookInProgressJsonable = new BookInProgressJsonable(bookInProgress);
         try {
-            List<String> questions = contextQuestionGenerator.get3Responses(bookInProgressJsonable)
-                    .stream()
-                    .map(GenerativeAiResponse::getMessage)
+//            List<String> questions = contextQuestionGenerator.get3Responses(bookInProgressJsonable)
+//                    .stream()
+//                    .map(GenerativeAiResponse::getMessage)
+//                    .toList();
+            List<String> questions = Arrays.stream(contextQuestionGenerator.getResponse(bookInProgressJsonable)
+                    .getMessage()
+                    .split("\n"))
                     .toList();
             GenerativeAiResponse refinedContext = getRefinedContext(bookInProgress);
             DepictInfoJsonable depictInfoJsonable = new DepictInfoJsonable(bookInProgress);

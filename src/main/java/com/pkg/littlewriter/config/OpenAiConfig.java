@@ -25,10 +25,6 @@ public class OpenAiConfig {
 
     @Bean
     public OpenAiService openAiService() {
-/*        log.info("openai {}",key);
-        OpenAiService openAiService = new OpenAiService(key);
-        log.info("openai ??? {}", openAiService.toString());*/
-//        OpenAiService service = new OpenAiService(api);
         ObjectMapper mapper = defaultObjectMapper();
         OkHttpClient client = defaultClient(key, Duration.ofSeconds(360))
                 .newBuilder()

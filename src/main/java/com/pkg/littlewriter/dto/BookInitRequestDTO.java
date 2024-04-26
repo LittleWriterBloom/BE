@@ -14,4 +14,5 @@ public class BookInitRequestDTO {
     private String firstContext;
     private String backgroundInfo;
     private Long characterId;
+    private int storyLength;
 }

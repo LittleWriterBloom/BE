@@ -44,13 +44,13 @@ public class BookController {
     @Autowired
     private CharacterService characterService;
     @Autowired
-    private BookInProgressRedisService bookInProgressRedisService2;
+    private BookInProgressRedisService bookInProgressRedisService;
     @Autowired
     private S3BucketService s3BucketService;
 
     @PostMapping("/insight")
     public ResponseEntity<?> buildBook(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInsightRequestDTO bookInsightRequestDTO) {
-        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService2.getByUserId(customUserDetails.getId());
+        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService.getByUserId(customUserDetails.getId());
         CharacterEntity characterEntity = characterService.getById(bookInProgressRedis.getCharacterId());
         CharacterDTO characterDTO = CharacterDTO.builder()
                 .name(characterEntity.getName())
@@ -73,12 +73,13 @@ public class BookController {
                     .backgroundImageUrl(bookInsightDTO.getTemporaryGeneratedImageUrl())
                     .pageNumber(bookInProgressRedis.getPreviousPages().size())
                     .build();
-            BookInProgressRedis updatedBookInProgress = bookInProgressRedisService2.appendPageTo(customUserDetails.getId(), newPage);
-            BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
+            BookInProgressRedis updatedBookInProgress = bookInProgressRedisService.appendPageTo(customUserDetails.getId(), newPage);
+            BookInsightResponseDTO bookInitResponseDTO = BookInsightResponseDTO.builder()
                     .bookInsight(bookInsightDTO)
                     .createdPages(updatedBookInProgress.getPreviousPages())
+                    .storyLength(updatedBookInProgress.getStoryLength())
                     .build();
-            ResponseDTO<BookInitResponseDTO> responseDTO = ResponseDTO.<BookInitResponseDTO>builder()
+            ResponseDTO<BookInsightResponseDTO> responseDTO = ResponseDTO.<BookInsightResponseDTO>builder()
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
@@ -96,7 +97,7 @@ public class BookController {
 
     @PostMapping("/insight2")
     public ResponseEntity<?> buildBook2(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInsightRequestDTO bookInsightRequestDTO) {
-        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService2.getByUserId(customUserDetails.getId());
+        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService.getByUserId(customUserDetails.getId());
         CharacterEntity characterEntity = characterService.getById(bookInProgressRedis.getCharacterId());
         CharacterDTO characterDTO = CharacterDTO.builder()
                 .name(characterEntity.getName())
@@ -119,12 +120,13 @@ public class BookController {
                     .backgroundImageUrl(bookInsightDTO.getTemporaryGeneratedImageUrl())
                     .pageNumber(bookInProgressRedis.getPreviousPages().size())
                     .build();
-            BookInProgressRedis updatedBookInProgress = bookInProgressRedisService2.appendPageTo(customUserDetails.getId(), newPage);
-            BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
+            BookInProgressRedis updatedBookInProgress = bookInProgressRedisService.appendPageTo(customUserDetails.getId(), newPage);
+            BookInsightResponseDTO bookInitResponseDTO = BookInsightResponseDTO.builder()
                     .bookInsight(bookInsightDTO)
                     .createdPages(updatedBookInProgress.getPreviousPages())
+                    .storyLength(updatedBookInProgress.getStoryLength())
                     .build();
-            ResponseDTO<BookInitResponseDTO> responseDTO = ResponseDTO.<BookInitResponseDTO>builder()
+            ResponseDTO<BookInsightResponseDTO> responseDTO = ResponseDTO.<BookInsightResponseDTO>builder()
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
@@ -138,7 +140,7 @@ public class BookController {
 
     @PostMapping("/save")
     public ResponseEntity<?> createBook(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookCompleteRequestDTO bookCompleteRequestDTO) {
-        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService2.getByUserId(customUserDetails.getId());
+        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService.getByUserId(customUserDetails.getId());
         BookEntity bookEntity = BookEntity.builder()
                 .id(bookInProgressRedis.getBookId())
                 .characterId(bookInProgressRedis.getCharacterId())
@@ -147,6 +149,7 @@ public class BookController {
                 .createDate(Date.from(Instant.now()))
                 .bookColor(bookCompleteRequestDTO.getBookColor())
                 .author(bookCompleteRequestDTO.getAuthor())
+                .storyLength(bookInProgressRedis.getStoryLength())
                 .build();
         bookService.createEmptyBook(bookEntity);
         int[] pageNumber = {0};
@@ -173,18 +176,19 @@ public class BookController {
                         .characterId(book.getCharacterId())
                         .author(book.getAuthor())
                         .bookColor(book.getBookColor())
+                        .storyLength(book.getStoryLength())
                         .build())
                 .collect(Collectors.toList());
         ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
                 .data(bookDTOS)
                 .build();
-        bookInProgressRedisService2.deleteByUserId(customUserDetails.getId());
+        bookInProgressRedisService.deleteByUserId(customUserDetails.getId());
         return ResponseEntity.ok().body(responseDTO);
     }
 
     @PostMapping("/save2")
     public ResponseEntity<?> createBook2(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookCompleteRequestDTO bookCompleteRequestDTO) throws IOException, InterruptedException {
-        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService2.getByUserId(customUserDetails.getId());
+        BookInProgressRedis bookInProgressRedis = bookInProgressRedisService.getByUserId(customUserDetails.getId());
         BookEntity bookEntity = BookEntity.builder()
                 .id(bookInProgressRedis.getBookId())
                 .characterId(bookInProgressRedis.getCharacterId())
@@ -193,6 +197,7 @@ public class BookController {
                 .createDate(Date.from(Instant.now()))
                 .bookColor(bookCompleteRequestDTO.getBookColor())
                 .author(bookCompleteRequestDTO.getAuthor())
+                .storyLength(bookInProgressRedis.getStoryLength())
                 .build();
         boolean isUrlDoneProcessing = isAllAvailable(bookInProgressRedis.getPreviousPages());
         while(!isUrlDoneProcessing) {
@@ -228,12 +233,13 @@ public class BookController {
                         .characterId(book.getCharacterId())
                         .author(book.getAuthor())
                         .bookColor(book.getBookColor())
+                        .storyLength(book.getStoryLength())
                         .build())
                 .collect(Collectors.toList());
         ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
                 .data(bookDTOS)
                 .build();
-        bookInProgressRedisService2.deleteByUserId(customUserDetails.getId());
+        bookInProgressRedisService.deleteByUserId(customUserDetails.getId());
         return ResponseEntity.ok().body(responseDTO);
     }
 
@@ -261,6 +267,7 @@ public class BookController {
                 .bookId(bookInProgressId)
                 .userId(customUserDetails.getId())
                 .backgroundInfo(initRequestDTO.getBackgroundInfo())
+                .storyLength(initRequestDTO.getStoryLength())
                 .build();
         try {
             CharacterEntity characterEntity = characterService.getById(initRequestDTO.getCharacterId());
@@ -271,6 +278,7 @@ public class BookController {
                             .name(characterEntity.getName())
                             .personality(characterEntity.getPersonality())
                             .build())
+                    .storyLength(initRequestDTO.getStoryLength())
                     .build();
             BookInsightDTO bookInsightDTO = bookService.generateHelperContents(bookInit);
             S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(bookInsightDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
@@ -280,12 +288,13 @@ public class BookController {
                     .backgroundImageUrl(bookInsightDTO.getTemporaryGeneratedImageUrl())
                     .characterActionInfo("").build();
             bookInProgressRedis.setPreviousPages(List.of(page));
-            bookInProgressRedisService2.put(bookInProgressRedis);
-            BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
+            bookInProgressRedisService.put(bookInProgressRedis);
+            BookInsightResponseDTO bookInitResponseDTO = BookInsightResponseDTO.builder()
                     .bookInsight(bookInsightDTO)
                     .createdPages(bookInProgressRedis.getPreviousPages())
+                    .storyLength(bookInProgressRedis.getStoryLength())
                     .build();
-            ResponseDTO<BookInitResponseDTO> responseDTO = ResponseDTO.<BookInitResponseDTO>builder()
+            ResponseDTO<BookInsightResponseDTO> responseDTO = ResponseDTO.<BookInsightResponseDTO>builder()
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
@@ -310,6 +319,7 @@ public class BookController {
                 .bookId(bookInProgressId)
                 .userId(customUserDetails.getId())
                 .backgroundInfo(initRequestDTO.getBackgroundInfo())
+                .storyLength(initRequestDTO.getStoryLength())
                 .build();
         try {
             CharacterEntity characterEntity = characterService.getById(initRequestDTO.getCharacterId());
@@ -326,12 +336,13 @@ public class BookController {
                     .backgroundImageUrl(bookInsightDTO.getTemporaryGeneratedImageUrl())
                     .characterActionInfo("").build();
             bookInProgressRedis.setPreviousPages(List.of(page));
-            bookInProgressRedisService2.put(bookInProgressRedis);
-            BookInitResponseDTO bookInitResponseDTO = BookInitResponseDTO.builder()
+            bookInProgressRedisService.put(bookInProgressRedis);
+            BookInsightResponseDTO bookInitResponseDTO = BookInsightResponseDTO.builder()
                     .bookInsight(bookInsightDTO)
                     .createdPages(bookInProgressRedis.getPreviousPages())
+                    .storyLength(bookInProgressRedis.getStoryLength())
                     .build();
-            ResponseDTO<BookInitResponseDTO> responseDTO = ResponseDTO.<BookInitResponseDTO>builder()
+            ResponseDTO<BookInsightResponseDTO> responseDTO = ResponseDTO.<BookInsightResponseDTO>builder()
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);

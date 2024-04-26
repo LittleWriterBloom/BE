@@ -19,4 +19,5 @@ public class BookCoverDTO {
     private String userId;
     private Date createDate;
     private Long bookColor;
+    private int storyLength;
 }

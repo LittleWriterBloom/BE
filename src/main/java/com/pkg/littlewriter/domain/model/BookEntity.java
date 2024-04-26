@@ -25,4 +25,5 @@ public class BookEntity {
     private Date createDate;
     private Long bookColor;
     private String author;
+    private int storyLength;
 }

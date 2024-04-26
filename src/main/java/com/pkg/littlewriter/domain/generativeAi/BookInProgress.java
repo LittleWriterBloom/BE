@@ -2,7 +2,6 @@ package com.pkg.littlewriter.domain.generativeAi;
 
 import com.pkg.littlewriter.dto.CharacterDTO;
 import com.pkg.littlewriter.dto.PageDTO;
-import com.pkg.littlewriter.dto.PageProgressRequestDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,4 +19,5 @@ public class BookInProgress {
     private String currentCharacterActionInfo;
     private CharacterDTO characterDTO;
     private List<PageDTO> previousPages;
+    private int storyLength;
 }

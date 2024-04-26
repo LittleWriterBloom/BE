@@ -24,4 +24,5 @@ public class BookDTO {
     private Date createDate;
     private Long bookColor;
     private String author;
+    private int storyLength;
 }
