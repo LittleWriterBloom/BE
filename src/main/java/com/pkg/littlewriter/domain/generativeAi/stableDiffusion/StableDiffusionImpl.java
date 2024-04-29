@@ -66,6 +66,7 @@ public class StableDiffusionImpl implements StableDiffusion {
                 .controlnetType("scribble")
                 .controlnetConditioningScale(0.5f)
                 .loraModel("kids-illustration")
+                .autoHint("yes")
                 .strength(1.0f)
                 .guessMode("no")
                 .useKarrasSigmas("yes")

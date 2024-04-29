@@ -13,33 +13,29 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class ContextRefiner implements GenerativeAi {
+public class SimpleWordTranslator implements GenerativeAi {
     @Autowired
     private OpenAiService openAiService;
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
-                    now you're a fairytale writer.
-                    fix sentence more naturally for fairytale.
-                    you should follow
-                    - if given sentences are awkward, change naturally
-                    - must contain original's content
-                    - answer in korean.
-                    - ~해요 체로 바꿔"""
+                    you're a helpful assistant who translate Korean to English
+                    if text were given, translate to English"""
     );
 
     @Override
-    public GenerativeAiResponse getResponse(Jsonable contextJsonable) throws JsonProcessingException {
-        ChatMessage fairyTaleInfo = new ChatMessage("user", contextJsonable.toJsonString());
+    public GenerativeAiResponse getResponse(Jsonable jsonable) throws JsonProcessingException {
+        ChatMessage fairyTaleInfo = new ChatMessage("user", jsonable.toJsonString());
         ChatCompletionRequest request = ChatCompletionRequest.builder()
-                .model(OpenAiModelEnum.GPT_4_TURBO_PREVIEW.getName())
+                .model(OpenAiModelEnum.GPT_3_5_TURBO.getName())
                 .messages(List.of(SYSTEM_MESSAGE, fairyTaleInfo))
                 .temperature(0.5)
-                .maxTokens(300)
+                .maxTokens(100)
                 .build();
         ChatMessage response = openAiService.createChatCompletion(request)
                 .getChoices()
                 .get(0)
                 .getMessage();
+        System.out.println(response.getContent());
         return new GptResponse(response);
     }
 }

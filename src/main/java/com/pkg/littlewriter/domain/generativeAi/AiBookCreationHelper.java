@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -27,7 +26,6 @@ public class AiBookCreationHelper {
     ContextQuestionGenerator contextQuestionGenerator;
     @Autowired
     GenerativeAi keywordExtractor;
-
     @Autowired
     GenerativeAi keywordExtractorStableDiffusion;
     @Autowired
@@ -36,7 +34,6 @@ public class AiBookCreationHelper {
     GenerativeAi wordQuestionGenerator;
     @Autowired
     GenerativeAi contextRefiner;
-
     @Autowired
     GenerativeAi contextEnricher;
     @Autowired
@@ -51,107 +48,68 @@ public class AiBookCreationHelper {
                 .personality(bookInProgress.getCharacterDTO().getPersonality())
                 .build();
         bookInProgressJsonable.setMainCharacter(characterJsonable);
-        CompletableFuture<ContextAndQuestion> contextAndQuestionCompletableFuture = asyncGenerativeAiService.asyncGenerateContextAndQuestion(bookInProgressJsonable);
+        CompletableFuture<ContextAndQuestion> contextAndQuestionCompletableFuture = asyncGenerativeAiService.asyncGenerateContextWithQuestion(bookInProgressJsonable);
         CompletableFuture<GeneratedImage> generatedImageCompletableFuture = asyncGenerativeAiService.asyncGenerateImage(bookInProgressJsonable);
         ContextAndQuestion contextAndQuestion = contextAndQuestionCompletableFuture.get();
         GeneratedImage generatedImage = generatedImageCompletableFuture.get();
         return BookInsightDTO.builder()
                 .temporaryGeneratedImageUrl(generatedImage.getImageUrl())
-                .generatedQuestions(contextAndQuestion.getGeneratedQuestions())
-                .refinedContext(contextAndQuestion.getGeneratedContext())
+                .generatedQuestions(contextAndQuestion.getQuestions())
+                .refinedContext(contextAndQuestion.getRefinedText())
                 .build();
     }
 
-    public BookInsightDTO generateBookInsightFrom2(BookInProgress bookInProgress) {
+    public BookInsightDTO generateBookInsightFrom2(BookInProgress bookInProgress) throws IOException, InterruptedException, ExecutionException {
         BookInProgressJsonable bookInProgressJsonable = new BookInProgressJsonable(bookInProgress);
-        try {
-//            List<String> questions = contextQuestionGenerator.get3Responses(bookInProgressJsonable)
-//                    .stream()
-//                    .map(GenerativeAiResponse::getMessage)
-//                    .toList();
-            List<String> questions = Arrays.stream(contextQuestionGenerator.getResponse(bookInProgressJsonable)
-                    .getMessage()
-                    .split("\n"))
-                    .toList();
-            GenerativeAiResponse refinedContext = getRefinedContext(bookInProgress);
-            DepictInfoJsonable depictInfoJsonable = new DepictInfoJsonable(bookInProgress);
-            String prompt = keywordExtractorStableDiffusion.getResponse(depictInfoJsonable).getMessage();
-            System.out.println("creating img using ... " + prompt);
-            TextToImageRequest textToImageRequest = TextToImageRequest.builder()
-                    .prompt(prompt)
-                    .build();
-            ImageResponse response = stableDiffusion.generateFromPrompt(textToImageRequest);
-            return BookInsightDTO.builder()
-                    .generatedQuestions(questions)
-                    .temporaryGeneratedImageUrl(response.getImageUrl())
-                    .refinedContext(refinedContext.getMessage())
-                    .build();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private GenerativeAiResponse getRefinedContext(BookInProgress bookInProgress) throws JsonProcessingException {
-        return contextRefiner.getResponse(new Jsonable() {
-            @Override
-            public String toJsonString() throws JsonProcessingException {
-                return bookInProgress.getCurrentContext();
-            }
-        });
+        CompletableFuture<ContextAndQuestion> contextAndQuestionCompletableFuture = asyncGenerativeAiService.asyncGenerateEnrichContextThenQuestion(bookInProgressJsonable);
+        DepictInfoJsonable depictInfoJsonable = new DepictInfoJsonable(bookInProgress);
+        GenerativeAiResponse extractedKeywords = keywordExtractorStableDiffusion.getResponse(depictInfoJsonable);
+        String prompt = extractedKeywords.getMessage();
+        System.out.println("background prompt for stable diffusion: " + prompt);
+        TextToImageRequest request = TextToImageRequest.builder()
+                .prompt(prompt)
+                .build();
+        ImageResponse imageResponse = stableDiffusion.generateFromPrompt(request);
+        ContextAndQuestion contextAndQuestion = contextAndQuestionCompletableFuture.get();
+        List<String> questions =contextAndQuestion.getQuestions();
+        return BookInsightDTO.builder()
+                .generatedQuestions(questions)
+                .temporaryGeneratedImageUrl(imageResponse.getMessage())
+                .refinedContext(contextAndQuestion.getRefinedText())
+                .build();
     }
 
     public BookInsightDTO generateBookInsightFrom(BookInit bookInit) throws JsonProcessingException, ExecutionException, InterruptedException {
         BookInitJsonable bookInitJsonable = new BookInitJsonable(bookInit);
-        CompletableFuture<ContextAndQuestion> contextAndQuestionCompletableFuture = asyncGenerativeAiService.asyncGenerateContextAndQuestion(bookInitJsonable);
+        CompletableFuture<ContextAndQuestion> contextAndQuestionCompletableFuture = asyncGenerativeAiService.asyncGenerateContextWithQuestion(bookInitJsonable);
         CompletableFuture<GeneratedImage> generatedImageCompletableFuture = asyncGenerativeAiService.asyncGenerateImage(bookInitJsonable);
-        ContextAndQuestion contextAndQuestion = contextAndQuestionCompletableFuture.get();
         GeneratedImage generatedImage = generatedImageCompletableFuture.get();
+        ContextAndQuestion contextAndQuestion = contextAndQuestionCompletableFuture.get();
         return BookInsightDTO.builder()
-                .generatedQuestions(contextAndQuestion.getGeneratedQuestions())
-                .refinedContext(contextAndQuestion.getGeneratedContext())
+                .generatedQuestions(contextAndQuestion.getQuestions())
+                .refinedContext(contextAndQuestion.getRefinedText())
                 .temporaryGeneratedImageUrl(generatedImage.getImageUrl())
                 .build();
     }
 
-    public BookInsightDTO generateBookInsightFrom2(BookInit bookInit) {
+    public BookInsightDTO generateBookInsightFrom2(BookInit bookInit) throws IOException, InterruptedException, ExecutionException {
         BookInitJsonable bookInitJsonable = new BookInitJsonable(bookInit);
-        try {
-            List<String> questions = Arrays.stream(contextQuestionGenerator.getResponse(bookInitJsonable)
-                            .getMessage()
-                            .split("\n"))
-                    .toList();
-            DepictInfoJsonable depictInfoJsonable = new DepictInfoJsonable(bookInit);
-            GenerativeAiResponse extractedKeywords = keywordExtractorStableDiffusion.getResponse(depictInfoJsonable);
-            ImageKeywordJsonable keywordJsonable = new ImageKeywordJsonable(extractedKeywords.getMessage());
-            String prompt = bookInit.getCharacterDTO().getDescription() + bookInit.getCharacterDTO().getAppearanceKeywords() + "with";
-//            GenerativeAiResponse imageUrlResponse = keywordToImageGenerator.getResponse(keywordJsonable);
-            System.out.println("background prompt for stable diffusion: " + extractedKeywords.getMessage());
-            TextToImageRequest request = TextToImageRequest.builder()
-                    .prompt(extractedKeywords.getMessage())
-                    .build();
-            ImageResponse imageResponse = stableDiffusion.generateFromPrompt(request);
-            GenerativeAiResponse refinedContext = contextRefiner.getResponse(new Jsonable() {
-                @Override
-                public String toJsonString() throws JsonProcessingException {
-                    return bookInit.getCurrentContext();
-                }
-            });
-            return BookInsightDTO.builder()
-                    .generatedQuestions(questions)
-                    .temporaryGeneratedImageUrl(imageResponse.getMessage())
-                    .refinedContext(refinedContext.getMessage())
-                    .build();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        CompletableFuture<ContextAndQuestion> contextAndQuestionCompletableFuture = asyncGenerativeAiService.asyncGenerateEnrichContextThenQuestion(bookInitJsonable);
+        DepictInfoJsonable depictInfoJsonable = new DepictInfoJsonable(bookInit);
+        GenerativeAiResponse extractedKeywords = keywordExtractorStableDiffusion.getResponse(depictInfoJsonable);
+        String prompt = extractedKeywords.getMessage();
+        System.out.println("background prompt for stable diffusion: " + prompt);
+        TextToImageRequest request = TextToImageRequest.builder()
+                .prompt(prompt)
+                .build();
+        ImageResponse imageResponse = stableDiffusion.generateFromPrompt(request);
+        ContextAndQuestion contextAndQuestion = contextAndQuestionCompletableFuture.get();
+        List<String> questions =contextAndQuestion.getQuestions();
+        return BookInsightDTO.builder()
+                .generatedQuestions(questions)
+                .temporaryGeneratedImageUrl(imageResponse.getMessage())
+                .refinedContext(contextAndQuestion.getRefinedText())
+                .build();
     }
 
     public String generateImageUrlFrom(String keyword) {

@@ -20,21 +20,35 @@ public class ContextQuestionGenerator implements GenerativeAi {
     @Autowired
     private OpenAiService openAiService;
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
+//            """
+//                    you're a helpful assistant who helps fairytale writer to continue the story
+//                    create 3-questions seperated by escape letter to help continuing fairytale story
+//                    question must related to how the next story will be.
+//                    questions should based on
+//                    - character's traits
+//                    - under 30 letters
+//                    - easy sentences
+//                    - how to act like
+//                    - how to converse with others
+//                    - background of the story
+//                    - last content of given story lines
+//                    - be specific
+//                    - line break each question
+//                    answer in Korean"""
             """
-                    you're a helpful assistant who helps fairytale writer to continue the story
-                    create 3-questions seperated by escape letter to help continuing fairytale story
-                    question must related to how the next story will be.
-                    questions should based on
-                    - character's traits
-                    - under 30 letters
-                    - easy sentences
-                    - how to act like
-                    - how to converse with others
-                    - background of the story
-                    - last content of given story lines
-                    - be specific
-                    - question must be seperated by comma escape letter : eg) question1 \n question2 \n question
-                    answer in Korean"""
+            you're a helpful assistant who helps fairytale writer to continue the story
+            generate 3-question base on current context to help imagine how the story will be continued
+            questions should based on
+            - character's traits
+            - under 30 letters
+            - easy sentences
+            - how to act like
+            - how to converse with others
+            - background of the story
+            - last context of given story lines
+            - be specific
+            - line break each question
+            answer in Korean"""
     );
 
     @Override

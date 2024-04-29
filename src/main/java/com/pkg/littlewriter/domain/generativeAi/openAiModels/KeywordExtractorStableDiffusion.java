@@ -26,7 +26,7 @@ public class KeywordExtractorStableDiffusion implements GenerativeAi {
                     - use simple sentence
                     - depict current context's objects.
                     - first sentence : depict background using "currentContext" and "backgroundInfo"
-                    - second sentence : depict main character using "characterAppearanceKeywords" and "characterDescription".
+                    - second sentence : depict main character using "characterAppearanceKeywords"
                     - third sentence : depict the light and facial expression.
                     - sentence is made of keywords, seperated by comma
                     for example:

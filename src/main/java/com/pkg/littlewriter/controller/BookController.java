@@ -135,6 +135,12 @@ public class BookController {
                     .error("cannot get response from openAi api")
                     .build();
             return ResponseEntity.internalServerError().body(responseDTO);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -167,20 +173,31 @@ public class BookController {
             page.setImageUrl(backgroundImageFile.getUrl());
             bookPageService.createPage(page);
         });
-        List<BookDTO> bookDTOS = bookService.getAllByUserId(customUserDetails.getId())
+        CharacterDTO characterDTO = new CharacterDTO(characterService.getById(bookInProgressRedis.getCharacterId()));
+        List<PageDTO> pageDTOs = bookPageService.getAllById(bookEntity.getId())
                 .stream()
-                .map(book -> BookDTO.builder()
-                        .title(book.getTitle())
-                        .id(book.getId())
-                        .userId(book.getUserId())
-                        .characterId(book.getCharacterId())
-                        .author(book.getAuthor())
-                        .bookColor(book.getBookColor())
-                        .storyLength(book.getStoryLength())
+                .map(page -> PageDTO.builder()
+                        .context(page.getContext())
+                        .backgroundImageUrl(page.getImageUrl())
+                        .characterActionInfo(page.getActionInfo())
+                        .pageNumber(page.getPageNumber())
                         .build())
                 .collect(Collectors.toList());
-        ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
-                .data(bookDTOS)
+        BookDTO bookDTO = BookDTO.builder()
+                .title(bookEntity.getTitle())
+                .id(bookEntity.getId())
+                .userId(bookEntity.getUserId())
+                .pages(pageDTOs)
+                .author(bookEntity.getAuthor())
+                .bookColor(bookEntity.getBookColor())
+                .storyLength(bookEntity.getStoryLength())
+                .build();
+        BookDetailDTO bookDetailDTO = BookDetailDTO.builder()
+                .book(bookDTO)
+                .character(characterDTO)
+                .build();
+        ResponseDTO<BookDetailDTO> responseDTO = ResponseDTO.<BookDetailDTO>builder()
+                .data(List.of(bookDetailDTO))
                 .build();
         bookInProgressRedisService.deleteByUserId(customUserDetails.getId());
         return ResponseEntity.ok().body(responseDTO);
@@ -224,20 +241,31 @@ public class BookController {
             page.setImageUrl(backgroundImageFile.getUrl());
             bookPageService.createPage(page);
         });
-        List<BookDTO> bookDTOS = bookService.getAllByUserId(customUserDetails.getId())
+        CharacterDTO characterDTO = new CharacterDTO(characterService.getById(bookInProgressRedis.getCharacterId()));
+        List<PageDTO> pageDTOs = bookPageService.getAllById(bookEntity.getId())
                 .stream()
-                .map(book -> BookDTO.builder()
-                        .title(book.getTitle())
-                        .id(book.getId())
-                        .userId(book.getUserId())
-                        .characterId(book.getCharacterId())
-                        .author(book.getAuthor())
-                        .bookColor(book.getBookColor())
-                        .storyLength(book.getStoryLength())
+                .map(page -> PageDTO.builder()
+                        .context(page.getContext())
+                        .backgroundImageUrl(page.getImageUrl())
+                        .characterActionInfo(page.getActionInfo())
+                        .pageNumber(page.getPageNumber())
                         .build())
                 .collect(Collectors.toList());
-        ResponseDTO<BookDTO> responseDTO = ResponseDTO.<BookDTO>builder()
-                .data(bookDTOS)
+        BookDTO bookDTO = BookDTO.builder()
+                .title(bookEntity.getTitle())
+                .id(bookEntity.getId())
+                .userId(bookEntity.getUserId())
+                .pages(pageDTOs)
+                .author(bookEntity.getAuthor())
+                .bookColor(bookEntity.getBookColor())
+                .storyLength(bookEntity.getStoryLength())
+                .build();
+        BookDetailDTO bookDetailDTO = BookDetailDTO.builder()
+                .book(bookDTO)
+                .character(characterDTO)
+                .build();
+        ResponseDTO<BookDetailDTO> responseDTO = ResponseDTO.<BookDetailDTO>builder()
+                .data(List.of(bookDetailDTO))
                 .build();
         bookInProgressRedisService.deleteByUserId(customUserDetails.getId());
         return ResponseEntity.ok().body(responseDTO);
@@ -352,6 +380,10 @@ public class BookController {
                     .error("cannot get response from openAi api")
                     .build();
             return ResponseEntity.internalServerError().body(responseDTO);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

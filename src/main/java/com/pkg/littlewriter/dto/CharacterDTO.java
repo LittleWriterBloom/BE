@@ -20,7 +20,6 @@ public class CharacterDTO {
     private String imageUrl;
     private String description;
     private String appearanceKeywords;
-    private String aiGeneratedImageUrl;
 
     public CharacterDTO(CharacterEntity characterEntity) {
         this.id = characterEntity.getId();
@@ -29,6 +28,5 @@ public class CharacterDTO {
         this.imageUrl = characterEntity.getImageUrl();
         this.appearanceKeywords = characterEntity.getAppearanceKeywords();
         this.description = characterEntity.getUserDescription();
-        this.aiGeneratedImageUrl = characterEntity.getAiGeneratedImageUrl();
     }
 }

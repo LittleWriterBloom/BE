@@ -54,7 +54,6 @@ public class BookBoardController {
                 .description(characterEntity.getUserDescription())
                 .appearanceKeywords(characterEntity.getAppearanceKeywords())
                 .imageUrl(characterEntity.getImageUrl())
-                .aiGeneratedImageUrl(characterEntity.getAiGeneratedImageUrl())
                 .build();
         BookDetailDTO bookDetail = BookDetailDTO.builder()
                 .book(bookDTO)
@@ -97,7 +96,6 @@ public class BookBoardController {
                 .name(characterEntity.getName())
                 .personality(characterEntity.getPersonality())
                 .imageUrl(characterEntity.getImageUrl())
-                .aiGeneratedImageUrl(characterEntity.getAiGeneratedImageUrl())
                 .build();
     }
 }

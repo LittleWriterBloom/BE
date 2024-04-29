@@ -11,6 +11,7 @@ import com.pkg.littlewriter.persistence.BookPageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -29,11 +30,11 @@ public class BookService {
         return  aiBookCreationHelper.generateBookInsightFrom(bookInit);
     }
 
-    public BookInsightDTO generateHelperContents2(BookInit bookInit) {
+    public BookInsightDTO generateHelperContents2(BookInit bookInit) throws IOException, ExecutionException, InterruptedException {
         return  aiBookCreationHelper.generateBookInsightFrom2(bookInit);
     }
 
-    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) {
+    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) throws IOException, ExecutionException, InterruptedException {
         return  aiBookCreationHelper.generateBookInsightFrom2(bookInProgress);
     }
 

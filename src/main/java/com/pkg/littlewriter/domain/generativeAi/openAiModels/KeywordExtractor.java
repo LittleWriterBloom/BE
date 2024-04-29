@@ -42,7 +42,6 @@ public class KeywordExtractor implements GenerativeAi {
                 .getChoices()
                 .get(0)
                 .getMessage();
-        System.out.println(response.getContent());
         return new GptResponse(response);
     }
 }

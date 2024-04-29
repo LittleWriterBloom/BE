@@ -21,7 +21,6 @@ public class CharacterEntity {
     private String imageUrl;
     private String userDescription;
     private String appearanceKeywords;
-    private String aiGeneratedImageUrl;
     @Column(nullable = false)
     private Long memberId;
 }
