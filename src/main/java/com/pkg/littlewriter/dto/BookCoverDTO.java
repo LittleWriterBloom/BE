@@ -12,6 +12,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Data
 public class BookCoverDTO {
+    private String bookId;
     private String firstPageImageUrl;
     private CharacterDTO character;
     private String title;

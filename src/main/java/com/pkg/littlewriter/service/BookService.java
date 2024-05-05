@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pkg.littlewriter.domain.generativeAi.AiBookCreationHelper;
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
 import com.pkg.littlewriter.domain.generativeAi.BookInit;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionException;
 import com.pkg.littlewriter.domain.model.BookEntity;
 import com.pkg.littlewriter.dto.BookInsightDTO;
 import com.pkg.littlewriter.dto.WordQuestionDTO;
@@ -30,16 +31,12 @@ public class BookService {
         return  aiBookCreationHelper.generateBookInsightFrom(bookInit);
     }
 
-    public BookInsightDTO generateHelperContents2(BookInit bookInit) throws IOException, ExecutionException, InterruptedException {
+    public BookInsightDTO generateHelperContents2(BookInit bookInit) throws IOException, ExecutionException, InterruptedException, StableDiffusionException {
         return  aiBookCreationHelper.generateBookInsightFrom2(bookInit);
     }
 
-    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) throws IOException, ExecutionException, InterruptedException {
+    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) throws IOException, ExecutionException, InterruptedException, StableDiffusionException {
         return  aiBookCreationHelper.generateBookInsightFrom2(bookInProgress);
-    }
-
-    public String generateImageUrl(String keyword) {
-        return aiBookCreationHelper.generateImageUrlFrom(keyword);
     }
 
     public String generateWordQuestionAnswer(WordQuestionDTO wordQuestionDTO) {

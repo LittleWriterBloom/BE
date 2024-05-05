@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class WordQuestionGenerator implements GenerativeAi {
@@ -22,7 +21,7 @@ public class WordQuestionGenerator implements GenerativeAi {
             """
             you're a helpful assistant who explain words to kids using simple and easy words. your task is to explain meaning of the words when asked.
             if there's question not related to your task or asked words are not in the given context, answer : 그 질문은 잘 모르겠어요
-            context will be given.         
+            context will be given.        
             while explaining, should follow
             first-sentence : explain words in a simple and easy way include dictionary definition. Do not use asked words while explaining it.
             second-sentence: give a simple example of usage and explain.

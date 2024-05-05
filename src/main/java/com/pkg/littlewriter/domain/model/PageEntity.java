@@ -17,6 +17,7 @@ public class PageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String bookId;
+    @Column(length = 511)
     private String context;
     private String imageUrl;
     private String actionInfo;

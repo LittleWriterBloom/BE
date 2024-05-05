@@ -69,7 +69,8 @@ public class BookBoardController {
         List<BookEntity> bookEntity = bookService.getAllByUserId(customUserDetails.getId());
         List<BookCoverDTO> bookCoverDTOs = bookEntity.stream()
                 .map(book -> BookCoverDTO.builder()
-                        .firstPageImageUrl(getFirstImageUrl(book))
+                        .bookId(book.getId())
+                        .firstPageImageUrl(book.getCoverImageUrl())
                         .userId(book.getUserId().toString())
                         .author(book.getAuthor())
                         .title(book.getTitle())
@@ -85,12 +86,7 @@ public class BookBoardController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
-    private String getFirstImageUrl(BookEntity book) {
-        return bookPageService.getAllById(book.getId()).get(0).getImageUrl();
-    }
-
     private CharacterDTO getCharacterDTO(BookEntity bookEntity) {
-
         CharacterEntity characterEntity = characterService.getById(bookEntity.getCharacterId());
         return CharacterDTO.builder()
                 .name(characterEntity.getName())

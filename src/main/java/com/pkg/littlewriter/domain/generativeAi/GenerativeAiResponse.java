@@ -1,5 +1,7 @@
 package com.pkg.littlewriter.domain.generativeAi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public interface GenerativeAiResponse {
-    public String getMessage();
+    String getMessage();
 }

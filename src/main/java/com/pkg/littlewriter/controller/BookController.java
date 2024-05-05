@@ -1,7 +1,10 @@
 package com.pkg.littlewriter.controller;
 
+import com.pkg.littlewriter.domain.generativeAi.AiBookCreationHelper;
 import com.pkg.littlewriter.domain.generativeAi.BookInProgress;
 import com.pkg.littlewriter.domain.generativeAi.BookInit;
+import com.pkg.littlewriter.domain.generativeAi.openAi.OpenAiException;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionException;
 import com.pkg.littlewriter.domain.model.BookEntity;
 import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.pkg.littlewriter.domain.model.PageEntity;
@@ -47,6 +50,8 @@ public class BookController {
     private BookInProgressRedisService bookInProgressRedisService;
     @Autowired
     private S3BucketService s3BucketService;
+    @Autowired
+    private AiBookCreationHelper aiBookCreationHelper;
 
     @PostMapping("/insight")
     public ResponseEntity<?> buildBook(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookInsightRequestDTO bookInsightRequestDTO) {
@@ -64,7 +69,7 @@ public class BookController {
                 .characterDTO(characterDTO)
                 .build();
         try {
-            BookInsightDTO bookInsightDTO = bookService.generateHelperContents(bookInProgress);
+            BookInsightDTO bookInsightDTO = aiBookCreationHelper.generateBookInsightDalle(bookInProgress);
             S3File temporaryUploadedFil = s3BucketService.uploadTemporaryFromUrl(bookInsightDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
             bookInsightDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFil.getUrl());
             PageDTO newPage = PageDTO.builder()
@@ -83,9 +88,7 @@ public class BookController {
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
+        } catch (IOException | OpenAiException e) {
             throw new RuntimeException(e);
         } catch (RuntimeException e) {
             ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
@@ -113,7 +116,7 @@ public class BookController {
                 .characterDTO(characterDTO)
                 .build();
         try {
-            BookInsightDTO bookInsightDTO = bookService.generateHelperContents2(bookInProgress);
+            BookInsightDTO bookInsightDTO = aiBookCreationHelper.generateBookInsightStableDiffusion(bookInProgress);
             PageDTO newPage = PageDTO.builder()
                     .characterActionInfo(bookInsightRequestDTO.getCharacterActionInfo())
                     .context(bookInsightDTO.getRefinedContext())
@@ -130,17 +133,11 @@ public class BookController {
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | OpenAiException | StableDiffusionException e) {
             ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
                     .error("cannot get response from openAi api")
                     .build();
             return ResponseEntity.internalServerError().body(responseDTO);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -156,6 +153,7 @@ public class BookController {
                 .bookColor(bookCompleteRequestDTO.getBookColor())
                 .author(bookCompleteRequestDTO.getAuthor())
                 .storyLength(bookInProgressRedis.getStoryLength())
+                .coverImageUrl(bookInProgressRedis.getPreviousPages().get(0).getBackgroundImageUrl())
                 .build();
         bookService.createEmptyBook(bookEntity);
         int[] pageNumber = {0};
@@ -206,6 +204,10 @@ public class BookController {
     @PostMapping("/save2")
     public ResponseEntity<?> createBook2(@AuthenticationPrincipal CustomUserDetails customUserDetails, @RequestBody BookCompleteRequestDTO bookCompleteRequestDTO) throws IOException, InterruptedException {
         BookInProgressRedis bookInProgressRedis = bookInProgressRedisService.getByUserId(customUserDetails.getId());
+        boolean isUrlDoneProcessing = isAllAvailable(bookInProgressRedis.getPreviousPages());
+        while (!isUrlDoneProcessing) {
+            isUrlDoneProcessing = isAllAvailable(bookInProgressRedis.getPreviousPages());
+        }
         BookEntity bookEntity = BookEntity.builder()
                 .id(bookInProgressRedis.getBookId())
                 .characterId(bookInProgressRedis.getCharacterId())
@@ -215,11 +217,8 @@ public class BookController {
                 .bookColor(bookCompleteRequestDTO.getBookColor())
                 .author(bookCompleteRequestDTO.getAuthor())
                 .storyLength(bookInProgressRedis.getStoryLength())
+                .coverImageUrl(bookInProgressRedis.getPreviousPages().get(0).getBackgroundImageUrl()) // 수정필요
                 .build();
-        boolean isUrlDoneProcessing = isAllAvailable(bookInProgressRedis.getPreviousPages());
-        while(!isUrlDoneProcessing) {
-            isUrlDoneProcessing = isAllAvailable(bookInProgressRedis.getPreviousPages());
-        }
         bookService.createEmptyBook(bookEntity);
         int[] pageNumber = {0};
         List<PageEntity> pages = bookInProgressRedis.getPreviousPages()
@@ -273,14 +272,14 @@ public class BookController {
 
     private boolean isAllAvailable(List<PageDTO> pageDTOS) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
-        for(PageDTO page : pageDTOS) {
+        for (PageDTO page : pageDTOS) {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(page.getBackgroundImageUrl()))
                     .GET()
                     .build();
             HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-            System.out.println("status code: " + response.statusCode());
-            if(response.statusCode() == 404) {
+            log.info("fetching... 404");
+            if (response.statusCode() == 404) {
                 return false;
             }
         }
@@ -308,7 +307,7 @@ public class BookController {
                             .build())
                     .storyLength(initRequestDTO.getStoryLength())
                     .build();
-            BookInsightDTO bookInsightDTO = bookService.generateHelperContents(bookInit);
+            BookInsightDTO bookInsightDTO = aiBookCreationHelper.generateBookInsightDalle(bookInit);
             S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(bookInsightDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
             bookInsightDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFile.getUrl());
             PageDTO page = PageDTO.builder()
@@ -332,9 +331,7 @@ public class BookController {
                     .error("cannot get response from openAi api")
                     .build();
             return ResponseEntity.internalServerError().body(responseDTO);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+        } catch (OpenAiException e) {
             throw new RuntimeException(e);
         }
     }
@@ -356,9 +353,7 @@ public class BookController {
                     .currentContext(initRequestDTO.getFirstContext())
                     .characterDTO(new CharacterDTO(characterEntity))
                     .build();
-            BookInsightDTO bookInsightDTO = bookService.generateHelperContents2(bookInit);
-//            S3File temporaryUploadedFile = s3BucketService.uploadTemporaryFromUrl(bookInsightDTO.getTemporaryGeneratedImageUrl(), S3DirectoryEnum.TEMPORARY);
-//            bookInsightDTO.setTemporaryGeneratedImageUrl(temporaryUploadedFile.getUrl());
+            BookInsightDTO bookInsightDTO = aiBookCreationHelper.generateBookInsightStableDiffusion(bookInit);
             PageDTO page = PageDTO.builder()
                     .context(bookInsightDTO.getRefinedContext())
                     .backgroundImageUrl(bookInsightDTO.getTemporaryGeneratedImageUrl())
@@ -374,16 +369,12 @@ public class BookController {
                     .data(List.of(bookInitResponseDTO))
                     .build();
             return ResponseEntity.ok().body(responseDTO);
-        } catch (RuntimeException e) {
+        } catch (StableDiffusionException | OpenAiException | RuntimeException e) {
             log.warn(e.getMessage());
             ResponseDTO<String> responseDTO = ResponseDTO.<String>builder()
                     .error("cannot get response from openAi api")
                     .build();
             return ResponseEntity.internalServerError().body(responseDTO);
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
     }
 

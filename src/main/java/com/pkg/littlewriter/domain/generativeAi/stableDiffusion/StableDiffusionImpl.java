@@ -1,5 +1,6 @@
 package com.pkg.littlewriter.domain.generativeAi.stableDiffusion;
 
+import com.pkg.littlewriter.domain.generativeAi.openAi.OpenAiException;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.StableDiffusionApi;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.request.FetchRequestBody;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.request.ImageToImageRequestBody;
@@ -10,46 +11,55 @@ import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.ima
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.imageToimage.ImageToImageSuccessResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.textToimage.TextToImageProcessingResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.response.textToimage.TextToImageSuccessResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class StableDiffusionImpl implements StableDiffusion {
     @Autowired
     private StableDiffusionApi api;
 
     @Override
-    public ImageResponse generateFromPrompt(TextToImageRequest textToImageRequest) throws IOException, InterruptedException {
-        TextToImageRequestBody text2image = TextToImageRequestBody.builder()
-                .key(api.getKey())
-                .prompt(textToImageRequest.getPrompt())
-                .modelId("v1-5-pruned-v6")
-                .loraModel("kids-illustration")
-                .height("512")
-                .width("512")
-                .samples("1")
-                .upscale("2")
-                .negativePrompt("duplicated characters, Bad anatomy, deformed, extra arms, extra limbs, extra hands, fused fingers, gross proportions, low quality")
-                .selfAttention("yes")
-                .loraStrength(1f)
-                .build();
-        Response<?> response = api.getTextToImageResponse(text2image);
-        if (response.isDone()) {
-            TextToImageSuccessResponse successStatus = (TextToImageSuccessResponse) response.getInstance();
-            return ImageResponse.builder()
-                    .isDone(true)
-                    .imageUrl(successStatus.getOutput().get(0))
-                    .id(successStatus.getId())
+    public ImageResponse generateFromPrompt(TextToImageRequest textToImageRequest) throws StableDiffusionException {
+        try{
+
+            TextToImageRequestBody text2image = TextToImageRequestBody.builder()
+                    .key(api.getKey())
+                    .prompt(textToImageRequest.getPrompt())
+                    .modelId("v1-5-pruned-v6")
+                    .loraModel("kids-illustration")
+                    .height("512")
+                    .width("512")
+                    .samples("1")
+                    .upscale("2")
+                    .negativePrompt("duplicated characters, Bad anatomy, deformed, extra arms, extra limbs, extra hands, fused fingers, gross proportions, low quality")
+                    .selfAttention("yes")
+                    .loraStrength(1f)
                     .build();
+            Response<?> response = api.getTextToImageResponse(text2image);
+            if (response.isDone()) {
+                TextToImageSuccessResponse successStatus = (TextToImageSuccessResponse) response.getInstance();
+                return ImageResponse.builder()
+                        .isDone(true)
+                        .imageUrl(successStatus.getOutput().get(0))
+                        .id(successStatus.getId())
+                        .build();
+            }
+            TextToImageProcessingResponse processingStatus = (TextToImageProcessingResponse) response.getInstance();
+            return ImageResponse.builder()
+                    .isDone(false)
+                    .imageUrl(processingStatus.getFutureLinks().get(0))
+                    .id(processingStatus.getId())
+                    .build();
+        } catch (InterruptedException | IOException ie) {
+            log.error("InterruptedException: ", ie);
+            Thread.currentThread().interrupt();
+            throw new StableDiffusionException(ie.getMessage());
         }
-        TextToImageProcessingResponse processingStatus = (TextToImageProcessingResponse) response.getInstance();
-        return ImageResponse.builder()
-                .isDone(false)
-                .imageUrl(processingStatus.getFutureLinks().get(0))
-                .id(processingStatus.getId())
-                .build();
     }
 
     @Override

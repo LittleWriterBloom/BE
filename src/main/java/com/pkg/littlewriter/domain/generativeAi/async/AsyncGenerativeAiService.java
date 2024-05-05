@@ -3,9 +3,23 @@ package com.pkg.littlewriter.domain.generativeAi.async;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pkg.littlewriter.domain.UserInputCharacterDTO;
-import com.pkg.littlewriter.domain.UserInputJsonable;
+import com.pkg.littlewriter.domain.generativeAi.openAi.OpenAiException;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.common.*;
 import com.pkg.littlewriter.domain.generativeAi.*;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.contextAndQuestion.RefineContextAndQuestionDTO;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.contextAndQuestion.RefineContextAndQuestionGenerator;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.contextEricher.EnrichContextAndQuestionGenerator;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.ContextKeyWordExtractor;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.ContextKeyWordExtractorStableDiffusion;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.KeyWordExtractorInputJsonable;
+import com.pkg.littlewriter.domain.generativeAi.openAi.image.ImageGenerator;
 import com.pkg.littlewriter.domain.generativeAi.openAiModels.*;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.ImageResponse;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionException;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionImpl;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.TextToImageRequest;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.StableDiffusionApi;
+import com.pkg.littlewriter.dto.BookInsightDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -29,8 +43,92 @@ public class AsyncGenerativeAiService {
     @Autowired
     private ContextAndQuestionGenerator contextAndQuestionGenerator;
 
+    //////
+    @Autowired
+    private RefineContextAndQuestionGenerator refineContextAndQuestionGenerator;
+    @Autowired
+    private EnrichContextAndQuestionGenerator enrichContextAndQuestionGenerator;
+    @Autowired
+    private ContextKeyWordExtractor contextKeyWordExtractor;
+    @Autowired
+    private ImageGenerator imageGenerator;
+    @Autowired
+    private ContextKeyWordExtractorStableDiffusion contextKeyWordExtractorStableDiffusion;
+    @Autowired
+    private StableDiffusionImpl stableDiffusion;
+
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    @Async
+    public CompletableFuture<RefineContextAndQuestionDTO> asyncRefineContextWithQuestion(BookInProgress bookInProgress) throws OpenAiException {
+        BookBuildJsonable bookBuildJsonable = new BookBuildJsonable(bookInProgress);
+        RefineContextAndQuestionDTO response = refineContextAndQuestionGenerator.getResponse(bookBuildJsonable);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Async
+    public CompletableFuture<RefineContextAndQuestionDTO> asyncRefineContextWithQuestion(BookInit bookInit) throws OpenAiException {
+        BookBuildJsonable bookBuildJsonable = new BookBuildJsonable(bookInit);
+        RefineContextAndQuestionDTO response = refineContextAndQuestionGenerator.getResponse(bookBuildJsonable);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Async
+    public CompletableFuture<RefineContextAndQuestionDTO> asyncEnrichContextWithQuestion(BookInProgress bookInProgress) throws OpenAiException {
+        BookBuildJsonable bookBuildJsonable = new BookBuildJsonable(bookInProgress);
+        RefineContextAndQuestionDTO response = enrichContextAndQuestionGenerator.getResponse(bookBuildJsonable);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Async
+    public CompletableFuture<RefineContextAndQuestionDTO> asyncEnrichContextWithQuestion(BookInit bookInit) throws OpenAiException {
+        BookBuildJsonable bookBuildJsonable = new BookBuildJsonable(bookInit);
+        RefineContextAndQuestionDTO response = enrichContextAndQuestionGenerator.getResponse(bookBuildJsonable);
+        return CompletableFuture.completedFuture(response);
+    }
+
+    @Async
+    public CompletableFuture<RawResponse> asyncGenerateDalleImage(BookInProgress bookInProgress) throws OpenAiException {
+        KeyWordExtractorInputJsonable keyWordExtractorInputJsonable = new KeyWordExtractorInputJsonable(bookInProgress);
+        RawResponse response = contextKeyWordExtractor.getResponse(keyWordExtractorInputJsonable);
+        OneAttributeJsonable imagePromptJsonable = new OneAttributeJsonable("context", response.getMessage());
+        RawResponse imageResponse = imageGenerator.getResponse(imagePromptJsonable);
+        return CompletableFuture.completedFuture(imageResponse);
+    }
+
+    @Async
+    public CompletableFuture<RawResponse> asyncGenerateDalleImage(BookInit bookInit) throws OpenAiException {
+        KeyWordExtractorInputJsonable keyWordExtractorInputJsonable = new KeyWordExtractorInputJsonable(bookInit);
+        RawResponse response = contextKeyWordExtractor.getResponse(keyWordExtractorInputJsonable);
+        OneAttributeJsonable imagePromptJsonable = new OneAttributeJsonable("context", response.getMessage());
+        RawResponse imageResponse = imageGenerator.getResponse(imagePromptJsonable);
+        return CompletableFuture.completedFuture(imageResponse);
+    }
+
+    @Async
+    public CompletableFuture<ImageResponse> asyncGenerateStableDiffusionImage(BookInProgress bookInProgress) throws OpenAiException, StableDiffusionException {
+        KeyWordExtractorInputJsonable keyWordExtractorInputJsonable = new KeyWordExtractorInputJsonable(bookInProgress);
+        RawResponse response = contextKeyWordExtractorStableDiffusion.getResponse(keyWordExtractorInputJsonable);
+        TextToImageRequest textToImageRequest = TextToImageRequest.builder()
+                .prompt(response.getMessage())
+                .build();
+        ImageResponse stableDiffusionResponse = stableDiffusion.generateFromPrompt(textToImageRequest);
+        return CompletableFuture.completedFuture(stableDiffusionResponse);
+    }
+
+    @Async
+    public CompletableFuture<ImageResponse> asyncGenerateStableDiffusionImage(BookInit bookInit) throws OpenAiException, StableDiffusionException {
+        KeyWordExtractorInputJsonable keyWordExtractorInputJsonable = new KeyWordExtractorInputJsonable(bookInit);
+        RawResponse response = contextKeyWordExtractorStableDiffusion.getResponse(keyWordExtractorInputJsonable);
+        TextToImageRequest textToImageRequest = TextToImageRequest.builder()
+                .prompt(response.getMessage())
+                .build();
+        ImageResponse stableDiffusionResponse = stableDiffusion.generateFromPrompt(textToImageRequest);
+        return CompletableFuture.completedFuture(stableDiffusionResponse);
+    }
+
+
+    /////////////////////////////////////////////
     @Async
     public CompletableFuture<ContextAndQuestion> asyncGenerateRefinedContextThenQuestion(BookInProgressJsonable bookInProgressJsonable) throws JsonProcessingException {
         String refinedContext = contextRefiner.getResponse(bookInProgressJsonable).getMessage();
@@ -110,7 +208,7 @@ public class AsyncGenerativeAiService {
     }
 
     @Async
-    public CompletableFuture<GeneratedImage> asyncGenerateImage(BookInProgressJsonable bookInProgressJsonable) throws JsonProcessingException {
+    public CompletableFuture<GeneratedImage> asyncGenerateDalleImage(BookInProgressJsonable bookInProgressJsonable) throws JsonProcessingException {
         DepictInfoJsonable depictInfoJsonable = DepictInfoJsonable
                 .builder()
                 .backgroundInfo(bookInProgressJsonable.getBackgroundInfo())
@@ -123,7 +221,7 @@ public class AsyncGenerativeAiService {
     }
 
     @Async
-    public CompletableFuture<GeneratedImage> asyncGenerateImage(BookInitJsonable bookInitJsonable) throws JsonProcessingException {
+    public CompletableFuture<GeneratedImage> asyncGenerateDalleImage(BookInitJsonable bookInitJsonable) throws JsonProcessingException {
         DepictInfoJsonable depictInfoJsonable = DepictInfoJsonable
                 .builder()
                 .backgroundInfo(bookInitJsonable.getBackgroundInfo())

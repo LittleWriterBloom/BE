@@ -26,4 +26,5 @@ public class BookEntity {
     private Long bookColor;
     private String author;
     private int storyLength;
+    private String coverImageUrl;
 }

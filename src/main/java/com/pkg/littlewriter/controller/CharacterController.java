@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.pkg.littlewriter.domain.generativeAi.GenerativeAiResponse;
 import com.pkg.littlewriter.domain.generativeAi.Jsonable;
 import com.pkg.littlewriter.domain.generativeAi.UrlJsonable;
+import com.pkg.littlewriter.domain.generativeAi.openAi.OpenAiException;
+import com.pkg.littlewriter.domain.generativeAi.openAi.image.CharacterImageKeywordExtractor;
+import com.pkg.littlewriter.domain.generativeAi.openAi.image.CharacterImageToTextInputJsonable;
 import com.pkg.littlewriter.domain.generativeAi.openAiModels.ImageToTextGenerator;
 import com.pkg.littlewriter.domain.generativeAi.openAiModels.SimpleWordTranslator;
 import com.pkg.littlewriter.domain.generativeAi.others.BackgroundRemoveApi;
@@ -43,8 +46,10 @@ public class CharacterController {
     private S3BucketService s3BucketService;
     @Autowired
     private StableDiffusion stableDiffusion;
+//    @Autowired
+//    private ImageToTextGenerator imageToTextGenerator;
     @Autowired
-    private ImageToTextGenerator imageToTextGenerator;
+    private CharacterImageKeywordExtractor characterImageKeywordExtractor;
     @Autowired
     private SimpleWordTranslator wordTranslator;
     @Autowired
@@ -59,26 +64,35 @@ public class CharacterController {
         } else {
             characterImageFile = s3BucketService.uploadTemporaryFromUrl(characterCreationRequestDTO.getImageUrl(), S3DirectoryEnum.CHARACTER);
         }
-        String englishDescription = wordTranslator.getResponse(new Jsonable() {
-            @Override
-            public String toJsonString() {
-                return characterCreationRequestDTO.getDescription();
-            }
-        }).getMessage();
-        String appearanceKeyword = imageToTextGenerator.getResponse(new UrlJsonable(characterImageFile.getUrl())).getMessage();
-        CharacterEntity newCharacter = CharacterEntity.builder()
-                .memberId(memberEntity.getId())
-                .name(characterCreationRequestDTO.getName())
+//        String englishDescription = wordTranslator.getResponse(new Jsonable() {
+//            @Override
+//            public String toJsonString() {
+//                return characterCreationRequestDTO.getDescription();
+//            }
+//        }).getMessage();
+//        String appearanceKeyword = imageToTextGenerator.getResponse(new UrlJsonable(characterImageFile.getUrl())).getMessage();
+        CharacterImageToTextInputJsonable inputJsonable = CharacterImageToTextInputJsonable.builder()
                 .imageUrl(characterImageFile.getUrl())
-                .personality(characterCreationRequestDTO.getPersonality())
-                .userDescription(characterCreationRequestDTO.getDescription())
-                .appearanceKeywords(englishDescription + " with " + appearanceKeyword)
+                .description(characterCreationRequestDTO.getDescription())
                 .build();
-        CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
-        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                .data(List.of(characters))
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
+        try{
+            String appearanceKeyword = characterImageKeywordExtractor.getResponse(inputJsonable).getMessage();
+            CharacterEntity newCharacter = CharacterEntity.builder()
+                    .memberId(memberEntity.getId())
+                    .name(characterCreationRequestDTO.getName())
+                    .imageUrl(characterImageFile.getUrl())
+                    .personality(characterCreationRequestDTO.getPersonality())
+                    .userDescription(characterCreationRequestDTO.getDescription())
+                    .appearanceKeywords(appearanceKeyword)
+                    .build();
+            CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
+            ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
+                    .data(List.of(characters))
+                    .build();
+            return ResponseEntity.ok().body(responseDTO);
+        } catch (OpenAiException e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 
     @GetMapping
