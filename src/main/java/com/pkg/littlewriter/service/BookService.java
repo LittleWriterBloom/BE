@@ -23,21 +23,21 @@ public class BookService {
     @Autowired
     private BookPageRepository bookRepository;
 
-    public BookInsightDTO generateHelperContents(BookInProgress bookInProgress) throws ExecutionException, JsonProcessingException, InterruptedException {
-        return  aiBookCreationHelper.generateBookInsightFrom(bookInProgress);
-    }
-
-    public BookInsightDTO generateHelperContents(BookInit bookInit) throws ExecutionException, JsonProcessingException, InterruptedException {
-        return  aiBookCreationHelper.generateBookInsightFrom(bookInit);
-    }
-
-    public BookInsightDTO generateHelperContents2(BookInit bookInit) throws IOException, ExecutionException, InterruptedException, StableDiffusionException {
-        return  aiBookCreationHelper.generateBookInsightFrom2(bookInit);
-    }
-
-    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) throws IOException, ExecutionException, InterruptedException, StableDiffusionException {
-        return  aiBookCreationHelper.generateBookInsightFrom2(bookInProgress);
-    }
+//    public BookInsightDTO generateHelperContents(BookInProgress bookInProgress) throws ExecutionException, JsonProcessingException, InterruptedException {
+//        return  aiBookCreationHelper.generateBookInsightFrom(bookInProgress);
+//    }
+//
+//    public BookInsightDTO generateHelperContents(BookInit bookInit) throws ExecutionException, JsonProcessingException, InterruptedException {
+//        return  aiBookCreationHelper.generateBookInsightFrom(bookInit);
+//    }
+//
+//    public BookInsightDTO generateHelperContents2(BookInit bookInit) throws IOException, ExecutionException, InterruptedException, StableDiffusionException {
+//        return  aiBookCreationHelper.generateBookInsightFrom2(bookInit);
+//    }
+//
+//    public BookInsightDTO generateHelperContents2(BookInProgress bookInProgress) throws IOException, ExecutionException, InterruptedException, StableDiffusionException {
+//        return  aiBookCreationHelper.generateBookInsightFrom2(bookInProgress);
+//    }
 
     public String generateWordQuestionAnswer(WordQuestionDTO wordQuestionDTO) {
         return aiBookCreationHelper.generateWordQuestionAnswer(wordQuestionDTO);

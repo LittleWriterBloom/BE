@@ -9,21 +9,17 @@ import com.pkg.littlewriter.domain.generativeAi.*;
 import com.pkg.littlewriter.domain.generativeAi.openAi.chat.contextAndQuestion.RefineContextAndQuestionDTO;
 import com.pkg.littlewriter.domain.generativeAi.openAi.chat.contextAndQuestion.RefineContextAndQuestionGenerator;
 import com.pkg.littlewriter.domain.generativeAi.openAi.chat.contextEricher.EnrichContextAndQuestionGenerator;
-import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.ContextKeyWordExtractor;
-import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.ContextKeyWordExtractorStableDiffusion;
-import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.KeyWordExtractorInputJsonable;
+import com.pkg.littlewriter.domain.generativeAi.openAi.chat.keyword.*;
 import com.pkg.littlewriter.domain.generativeAi.openAi.image.ImageGenerator;
 import com.pkg.littlewriter.domain.generativeAi.openAiModels.*;
-import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.ImageResponse;
-import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionException;
-import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionImpl;
-import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.TextToImageRequest;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.*;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.api.StableDiffusionApi;
 import com.pkg.littlewriter.dto.BookInsightDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -56,6 +52,8 @@ public class AsyncGenerativeAiService {
     private ContextKeyWordExtractorStableDiffusion contextKeyWordExtractorStableDiffusion;
     @Autowired
     private StableDiffusionImpl stableDiffusion;
+    @Autowired
+    SketchKeywordExtractor sketchKeywordExtractor;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -103,6 +101,34 @@ public class AsyncGenerativeAiService {
         OneAttributeJsonable imagePromptJsonable = new OneAttributeJsonable("context", response.getMessage());
         RawResponse imageResponse = imageGenerator.getResponse(imagePromptJsonable);
         return CompletableFuture.completedFuture(imageResponse);
+    }
+
+    @Async
+    public CompletableFuture<SketchAndProcessingImage> asyncGenerateSketchAndProcessingImage(BookInProgress bookInProgress) throws OpenAiException, StableDiffusionException {
+        SketchKeywordExtractorInputJsonable sketchKeywordExtractorInputJsonable = new SketchKeywordExtractorInputJsonable(bookInProgress);
+        RawResponse promptResponse = sketchKeywordExtractor.getResponse(sketchKeywordExtractorInputJsonable);
+        OneAttributeJsonable imagePromptJsonable = new OneAttributeJsonable("context", promptResponse.getMessage());
+        RawResponse sketchImageResponse = imageGenerator.getResponse(imagePromptJsonable);
+        ImageToImageRequest imageToImageRequest = ImageToImageRequest.builder()
+                .imageUrl(sketchImageResponse.getMessage())
+                .prompt(promptResponse.getMessage())
+                .build();
+        ImageResponse processingImageResponse = stableDiffusion.generateFromImageCanny(imageToImageRequest);
+        return CompletableFuture.completedFuture(new SketchAndProcessingImage(sketchImageResponse.getMessage(), processingImageResponse));
+    }
+
+    @Async
+    public CompletableFuture<SketchAndProcessingImage> asyncGenerateSketchAndProcessingImage(BookInit bookInit) throws OpenAiException, StableDiffusionException {
+        SketchKeywordExtractorInputJsonable sketchKeywordExtractorInputJsonable = new SketchKeywordExtractorInputJsonable(bookInit);
+        RawResponse promptResponse = sketchKeywordExtractor.getResponse(sketchKeywordExtractorInputJsonable);
+        OneAttributeJsonable imagePromptJsonable = new OneAttributeJsonable("context", promptResponse.getMessage());
+        RawResponse sketchImageResponse = imageGenerator.getResponse(imagePromptJsonable);
+        ImageToImageRequest imageToImageRequest = ImageToImageRequest.builder()
+                .imageUrl(sketchImageResponse.getMessage())
+                .prompt(promptResponse.getMessage())
+                .build();
+        ImageResponse processingImageResponse = stableDiffusion.generateFromImageCanny(imageToImageRequest);
+        return CompletableFuture.completedFuture(new SketchAndProcessingImage(sketchImageResponse.getMessage(), processingImageResponse));
     }
 
     @Async

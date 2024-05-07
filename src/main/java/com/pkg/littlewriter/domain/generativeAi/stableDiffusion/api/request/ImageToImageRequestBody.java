@@ -172,7 +172,7 @@ public class ImageToImageRequestBody {
     /**
      * Clip Skip (minimum: 1; maximum: 8)
      */
-    private String clipSkip;
+    private int clipSkip;
 
     /**
      * Get response as base64 string, pass init_image, mask_image , control_image as base64 string, to get base64 response. default: "no", options: yes/no
@@ -189,4 +189,6 @@ public class ImageToImageRequestBody {
      */
     @Builder.Default
     private String instantResponse = "yes";
+
+    private Float guidanceScale;
 }

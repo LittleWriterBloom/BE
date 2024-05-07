@@ -19,7 +19,8 @@ public class PageEntity {
     private String bookId;
     @Column(length = 511)
     private String context;
-    private String imageUrl;
+    private String colorImageUrl;
+    private String sketchImageUrl;
     private String actionInfo;
     private int pageNumber;
 }

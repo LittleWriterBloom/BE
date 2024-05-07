@@ -14,6 +14,7 @@ import com.pkg.littlewriter.domain.generativeAi.others.BackgroundRemoveResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.ImageResponse;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.ImageToImageRequest;
 import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusion;
+import com.pkg.littlewriter.domain.generativeAi.stableDiffusion.StableDiffusionException;
 import com.pkg.littlewriter.dto.*;
 import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.pkg.littlewriter.domain.model.MemberEntity;
@@ -46,8 +47,6 @@ public class CharacterController {
     private S3BucketService s3BucketService;
     @Autowired
     private StableDiffusion stableDiffusion;
-//    @Autowired
-//    private ImageToTextGenerator imageToTextGenerator;
     @Autowired
     private CharacterImageKeywordExtractor characterImageKeywordExtractor;
     @Autowired
@@ -59,40 +58,34 @@ public class CharacterController {
     public ResponseEntity<?> createCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO) throws IOException {
         MemberEntity memberEntity = userService.getById(userDetails.getId());
         S3File characterImageFile;
+        S3File originCharacterImageFile;
         if (characterCreationRequestDTO.getImageType().equals(CharacterCreationRequestDTO.ImageType.BASE_64)) {
             characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
+            originCharacterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64OriginImage(), S3DirectoryEnum.CHARACTER);
         } else {
             characterImageFile = s3BucketService.uploadTemporaryFromUrl(characterCreationRequestDTO.getImageUrl(), S3DirectoryEnum.CHARACTER);
+            originCharacterImageFile = s3BucketService.uploadTemporaryFromUrl(characterCreationRequestDTO.getOriginImageUrl(), S3DirectoryEnum.CHARACTER);
         }
-//        String englishDescription = wordTranslator.getResponse(new Jsonable() {
-//            @Override
-//            public String toJsonString() {
-//                return characterCreationRequestDTO.getDescription();
-//            }
-//        }).getMessage();
-//        String appearanceKeyword = imageToTextGenerator.getResponse(new UrlJsonable(characterImageFile.getUrl())).getMessage();
-        CharacterImageToTextInputJsonable inputJsonable = CharacterImageToTextInputJsonable.builder()
+//        CharacterImageToTextInputJsonable inputJsonable = CharacterImageToTextInputJsonable.builder()
+//                .imageUrl(characterImageFile.getUrl())
+//                .description(characterCreationRequestDTO.getDescription())
+//                .build();
+//            String appearanceKeyword = characterImageKeywordExtractor.getResponse(inputJsonable).getMessage();
+        CharacterEntity newCharacter = CharacterEntity.builder()
+                .memberId(memberEntity.getId())
+                .name(characterCreationRequestDTO.getName())
                 .imageUrl(characterImageFile.getUrl())
-                .description(characterCreationRequestDTO.getDescription())
+                .originImageUrl(originCharacterImageFile.getUrl())
+                .personality(characterCreationRequestDTO.getPersonality())
+                .userDescription(characterCreationRequestDTO.getDescription())
+//                    .appearanceKeywords(appearanceKeyword)
                 .build();
-        try{
-            String appearanceKeyword = characterImageKeywordExtractor.getResponse(inputJsonable).getMessage();
-            CharacterEntity newCharacter = CharacterEntity.builder()
-                    .memberId(memberEntity.getId())
-                    .name(characterCreationRequestDTO.getName())
-                    .imageUrl(characterImageFile.getUrl())
-                    .personality(characterCreationRequestDTO.getPersonality())
-                    .userDescription(characterCreationRequestDTO.getDescription())
-                    .appearanceKeywords(appearanceKeyword)
-                    .build();
-            CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
-            ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                    .data(List.of(characters))
-                    .build();
-            return ResponseEntity.ok().body(responseDTO);
-        } catch (OpenAiException e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+        CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
+        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
+                .data(List.of(characters))
+                .build();
+        return ResponseEntity.ok().body(responseDTO);
+
     }
 
     @GetMapping
@@ -108,39 +101,8 @@ public class CharacterController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
-//    @PostMapping("/ai")
-//    public ResponseEntity<?> createAiCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO) throws IOException, InterruptedException {
-//        MemberEntity memberEntity = userService.getById(userDetails.getId());
-//        S3File characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
-//        ImageToImageRequest request = ImageToImageRequest.builder()
-//                .prompt(characterCreationRequestDTO.getDescription())
-//                .imageUrl(characterImageFile.getUrl())
-//                .build();
-//        ImageResponse response = stableDiffusion.generateFromImage(request);
-//        while(!response.isDone()) {
-//            response = stableDiffusion.fetchImageResponse(response);
-//        }
-//        S3File stableDiffusionImage = s3BucketService.uploadTemporaryFromUrl(response.getImageUrl(), S3DirectoryEnum.CHARACTER);
-//        GenerativeAiResponse keywords = imageToTextGenerator.getResponse(new UrlJsonable(stableDiffusionImage.getUrl()));
-//        keywords.getMessage();
-//        CharacterEntity newCharacter = CharacterEntity.builder()
-//                .memberId(memberEntity.getId())
-//                .name(characterCreationRequestDTO.getName())
-//                .imageUrl(characterImageFile.getUrl())
-//                .aiGeneratedImageUrl(stableDiffusionImage.getUrl())
-//                .personality(characterCreationRequestDTO.getPersonality())
-//                .userDescription(characterCreationRequestDTO.getDescription())
-//                .appearanceKeywords(keywords.getMessage())
-//                .build();
-//        CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
-//        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-//                .data(List.of(characters))
-//                .build();
-//        return ResponseEntity.ok().body(responseDTO);
-//    }
-
     @PostMapping("/ai")
-    public ResponseEntity<?> convert(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody AiCharacterImageRequestDTO characterCreationRequestDTO) throws IOException, InterruptedException {
+    public ResponseEntity<?> convert(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody AiCharacterImageRequestDTO characterCreationRequestDTO) throws IOException, InterruptedException, StableDiffusionException {
         S3File originCharacterImage;
         if (characterCreationRequestDTO.getImageType().equals(CharacterCreationRequestDTO.ImageType.BASE_64)) {
             originCharacterImage = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.TEMPORARY);

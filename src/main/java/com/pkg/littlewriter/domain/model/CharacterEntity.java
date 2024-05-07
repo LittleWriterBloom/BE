@@ -19,6 +19,7 @@ public class CharacterEntity {
     private String name;
     private String personality;
     private String imageUrl;
+    private String originImageUrl;
     private String userDescription;
     private String appearanceKeywords;
     @Column(nullable = false)

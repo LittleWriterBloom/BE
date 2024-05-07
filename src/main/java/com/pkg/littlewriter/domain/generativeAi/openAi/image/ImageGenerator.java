@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
 public class ImageGenerator implements OpenAi<RawResponse, OneAttributeJsonable> {
     @Autowired
     private OpenAiService openAiService;
-    private static final String STYLE_PROMPT = " cute children's simple cartoon illustration. vivid color, flat 2D with simple shading";
-
     @Override
     public RawResponse getResponse(OneAttributeJsonable keyWordJsonable) {
         String keywords = keyWordJsonable.getValue();
@@ -31,6 +29,8 @@ public class ImageGenerator implements OpenAi<RawResponse, OneAttributeJsonable>
                 .getUrl();
         return new RawResponse(resultImageUrl);
     }
+
+    private static final String STYLE_PROMPT = ", black and white line sketches, full sized";
 
     private String createPrompt(String keywords) {
         return keywords + STYLE_PROMPT;

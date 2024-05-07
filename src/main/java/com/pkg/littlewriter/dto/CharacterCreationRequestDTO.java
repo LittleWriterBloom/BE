@@ -16,6 +16,8 @@ public class CharacterCreationRequestDTO {
     private String description;
     private ImageType imageType;
     private String imageUrl;
+    private String originImageUrl;
+    private String base64OriginImage;
     public enum ImageType {
         BASE_64, URL
     }

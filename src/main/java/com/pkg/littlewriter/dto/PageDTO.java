@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class PageDTO {
     private String context;
-    private String backgroundImageUrl;
+    private String sketchImageUrl;
+    private String coloredImageUrl;
     private String characterActionInfo;
     private int pageNumber;
 }

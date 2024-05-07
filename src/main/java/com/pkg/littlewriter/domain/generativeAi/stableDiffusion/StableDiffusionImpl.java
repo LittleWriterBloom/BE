@@ -25,7 +25,7 @@ public class StableDiffusionImpl implements StableDiffusion {
 
     @Override
     public ImageResponse generateFromPrompt(TextToImageRequest textToImageRequest) throws StableDiffusionException {
-        try{
+        try {
 
             TextToImageRequestBody text2image = TextToImageRequestBody.builder()
                     .key(api.getKey())
@@ -63,7 +63,7 @@ public class StableDiffusionImpl implements StableDiffusion {
     }
 
     @Override
-    public ImageResponse generateFromImage(ImageToImageRequest imageToImageRequest) throws IOException, InterruptedException {
+    public ImageResponse generateFromImage(ImageToImageRequest imageToImageRequest) throws StableDiffusionException {
         ImageToImageRequestBody requestBody = ImageToImageRequestBody.builder()
                 .key(api.getKey())
                 .prompt(imageToImageRequest.getPrompt())
@@ -84,22 +84,9 @@ public class StableDiffusionImpl implements StableDiffusion {
                 .multiLingual("yes")
                 .samples("1")
                 .tomesd("yes")
+                .guidanceScale(7.5f)
                 .build();
-        Response<?> response = api.getImageToImageResponse(requestBody);
-        if (response.isDone()) {
-            ImageToImageSuccessResponse successStatus = (ImageToImageSuccessResponse) response.getInstance();
-            return ImageResponse.builder()
-                    .isDone(true)
-                    .imageUrl(successStatus.getOutput().get(0))
-                    .id(successStatus.getId())
-                    .build();
-        }
-        ImageToImageProcessingResponse processingStatus = (ImageToImageProcessingResponse) response.getInstance();
-        return ImageResponse.builder()
-                .isDone(false)
-                .imageUrl(processingStatus.getFutureLinks().get(0))
-                .id(processingStatus.getId())
-                .build();
+        return getImageResponse(requestBody);
     }
 
     @Override
@@ -118,5 +105,58 @@ public class StableDiffusionImpl implements StableDiffusion {
                     .build();
         }
         return imageResponse;
+    }
+
+    @Override
+    public ImageResponse generateFromImageCanny(ImageToImageRequest imageToImageRequest) throws StableDiffusionException {
+        ImageToImageRequestBody requestBody = ImageToImageRequestBody.builder()
+                .key(api.getKey())
+                .prompt(imageToImageRequest.getPrompt())
+                .height("512")
+                .width("512")
+                .upscale("2")
+                .initImage(imageToImageRequest.getImageUrl())
+                .modelId("v1-5-pruned-v6")
+                .controlnetModel("canny")
+                .controlnetType("canny")
+                .controlnetConditioningScale(0.5f)
+                .loraModel("kids-illustration")
+                .autoHint("yes")
+                .strength(1.0f)
+                .guessMode("no")
+                .useKarrasSigmas("yes")
+                .scheduler("EulerDiscreteScheduler")
+                .multiLingual("yes")
+                .samples("1")
+                .tomesd("yes")
+                .guidanceScale(12f)
+                .clipSkip(3)
+                .instantResponse("yes")
+                .build();
+        return getImageResponse(requestBody);
+    }
+
+    private ImageResponse getImageResponse(ImageToImageRequestBody requestBody) throws StableDiffusionException {
+        try {
+            Response<?> response = api.getImageToImageResponse(requestBody);
+            if (response.isDone()) {
+                ImageToImageSuccessResponse successStatus = (ImageToImageSuccessResponse) response.getInstance();
+                return ImageResponse.builder()
+                        .isDone(true)
+                        .imageUrl(successStatus.getOutput().get(0))
+                        .id(successStatus.getId())
+                        .build();
+            }
+            ImageToImageProcessingResponse processingStatus = (ImageToImageProcessingResponse) response.getInstance();
+            return ImageResponse.builder()
+                    .isDone(false)
+                    .imageUrl(processingStatus.getFutureLinks().get(0))
+                    .id(processingStatus.getId())
+                    .build();
+        } catch (InterruptedException | IOException ie) {
+            log.error("InterruptedException: ", ie);
+            Thread.currentThread().interrupt();
+            throw new StableDiffusionException(ie.getMessage());
+        }
     }
 }

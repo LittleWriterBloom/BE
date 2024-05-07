@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class BookInsightResponseDTO {
-    private BookInsightDTO bookInsight;
-    private List<PageDTO> createdPages;
+    private BookInsightSketchDTO bookInsight;
+//    private List<PageDTO> createdPages;
     private int storyLength;
 }

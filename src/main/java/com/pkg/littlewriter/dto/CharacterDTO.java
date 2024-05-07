@@ -18,6 +18,7 @@ public class CharacterDTO {
     private String name;
     private String personality;
     private String imageUrl;
+    private String originImageUrl;
     private String description;
     private String appearanceKeywords;
 
@@ -26,6 +27,7 @@ public class CharacterDTO {
         this.name = characterEntity.getName();
         this.personality = characterEntity.getPersonality();
         this.imageUrl = characterEntity.getImageUrl();
+        this.originImageUrl = characterEntity.getOriginImageUrl();
         this.appearanceKeywords = characterEntity.getAppearanceKeywords();
         this.description = characterEntity.getUserDescription();
     }
