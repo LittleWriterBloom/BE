@@ -11,7 +11,6 @@ import com.theokanning.openai.service.OpenAiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.net.SocketTimeoutException;
 import java.util.List;
 
 @Component

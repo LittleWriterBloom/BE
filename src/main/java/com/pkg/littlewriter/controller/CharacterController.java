@@ -55,7 +55,7 @@ public class CharacterController {
     private BackgroundRemoveApi backgroundRemover;
 
     @PostMapping()
-    public ResponseEntity<?> createCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO) throws IOException {
+    public ResponseEntity<?> createCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO) throws IOException, OpenAiException {
         MemberEntity memberEntity = userService.getById(userDetails.getId());
         S3File characterImageFile;
         S3File originCharacterImageFile;
@@ -66,11 +66,11 @@ public class CharacterController {
             characterImageFile = s3BucketService.uploadTemporaryFromUrl(characterCreationRequestDTO.getImageUrl(), S3DirectoryEnum.CHARACTER);
             originCharacterImageFile = s3BucketService.uploadTemporaryFromUrl(characterCreationRequestDTO.getOriginImageUrl(), S3DirectoryEnum.CHARACTER);
         }
-//        CharacterImageToTextInputJsonable inputJsonable = CharacterImageToTextInputJsonable.builder()
-//                .imageUrl(characterImageFile.getUrl())
-//                .description(characterCreationRequestDTO.getDescription())
-//                .build();
-//            String appearanceKeyword = characterImageKeywordExtractor.getResponse(inputJsonable).getMessage();
+        CharacterImageToTextInputJsonable inputJsonable = CharacterImageToTextInputJsonable.builder()
+                .imageUrl(characterImageFile.getUrl())
+                .description(characterCreationRequestDTO.getDescription())
+                .build();
+        String appearanceKeyword = characterImageKeywordExtractor.getResponse(inputJsonable).getMessage();
         CharacterEntity newCharacter = CharacterEntity.builder()
                 .memberId(memberEntity.getId())
                 .name(characterCreationRequestDTO.getName())
@@ -78,7 +78,7 @@ public class CharacterController {
                 .originImageUrl(originCharacterImageFile.getUrl())
                 .personality(characterCreationRequestDTO.getPersonality())
                 .userDescription(characterCreationRequestDTO.getDescription())
-//                    .appearanceKeywords(appearanceKeyword)
+                .appearanceKeywords(appearanceKeyword)
                 .build();
         CharacterDTO characters = new CharacterDTO(characterService.create(newCharacter));
         ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()

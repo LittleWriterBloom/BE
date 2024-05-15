@@ -20,15 +20,13 @@ public class ContextKeyWordExtractor implements OpenAi<RawResponse, KeyWordExtra
     private static final ChatMessage SYSTEM_MESSAGE = new ChatMessage("system",
             """
                     you're a helpful assistant that depict details to generate image.
-                      using given json, depict "currentContext" background.
-                      you should follow
-                    - depict current background using base on "currentContext", "previousContext"
-                    - depict very specifically and imagine the scenery when lack of information, using 3 sentences
-                    - do not contain "mainCharacter"
-                    - depict other characters except for "mainCharacter"
-                    - do not contain adverbial clause
-                    - answer must ends with ", full sized"
-                    - answer in english"""
+                     using given json, depict "currentContext" scene.
+                   - choose random format given below
+                     [whole context of appearanceKeyword] is [what main character is doing], in [background], [lights]
+                     [other character] is [what they're doing], in [background], [lights]
+                     [object] is in [background], [lights]
+                     [background], [lights]
+                   - answer must be in english"""
     );
 
     @Override

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ImageGenerator implements OpenAi<RawResponse, OneAttributeJsonable> {
+public class DalleImageGenerator implements OpenAi<RawResponse, OneAttributeJsonable> {
     @Autowired
     private OpenAiService openAiService;
     @Override
@@ -30,10 +30,9 @@ public class ImageGenerator implements OpenAi<RawResponse, OneAttributeJsonable>
         return new RawResponse(resultImageUrl);
     }
 
-    private static final String STYLE_PROMPT = ", black and white line sketches, full sized";
+    private static final String STYLE_PROMPT = "This should be a full-sized, children's picture book illustration style, boasting pure and vibrant colors. Maintain a flat 2D look with simple shading with no outlines, emphasizing the sweet innocence and enchantment of the scene. And no seperated image";
 
     private String createPrompt(String keywords) {
         return keywords + STYLE_PROMPT;
     };
-
 }

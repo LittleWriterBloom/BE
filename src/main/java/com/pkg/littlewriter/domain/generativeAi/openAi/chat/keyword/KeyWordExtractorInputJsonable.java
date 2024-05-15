@@ -19,7 +19,7 @@ public class KeyWordExtractorInputJsonable extends Jsonable {
     private String previousContext;
     private String currentContext;
     private String characterAppearanceKeyword;
-    private String characterDescription;
+    private String mainCharacterName;
     private String whereStoryBegins;
 
     public KeyWordExtractorInputJsonable(BookInProgress bookInProgress) {
@@ -29,7 +29,7 @@ public class KeyWordExtractorInputJsonable extends Jsonable {
                 .collect(Collectors.joining());
         this.currentContext = bookInProgress.getCurrentContext();
         this.characterAppearanceKeyword = bookInProgress.getCharacterDTO().getAppearanceKeywords();
-        this.characterDescription = bookInProgress.getCharacterDTO().getDescription();
+        this.mainCharacterName = bookInProgress.getCharacterDTO().getName();
         this.whereStoryBegins = bookInProgress.getBackgroundInfo();
     }
 
@@ -37,7 +37,7 @@ public class KeyWordExtractorInputJsonable extends Jsonable {
         this.previousContext = "";
         this.currentContext = bookInProgress.getCurrentContext();
         this.characterAppearanceKeyword = bookInProgress.getCharacterDTO().getAppearanceKeywords();
-        this.characterDescription = bookInProgress.getCharacterDTO().getDescription();
+        this.mainCharacterName = bookInProgress.getCharacterDTO().getName();
         this.whereStoryBegins = bookInProgress.getBackgroundInfo();
     }
 }
