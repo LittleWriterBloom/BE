@@ -8,6 +8,10 @@ import com.pkg.littlewriter.service.BookPageService;
 import com.pkg.littlewriter.service.BookService;
 import com.pkg.littlewriter.service.CharacterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -66,8 +70,10 @@ public class BookBoardController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<?> getBook(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        List<BookEntity> bookEntity = bookService.getAllByUserId(customUserDetails.getId());
+    public ResponseEntity<?> getBook(@AuthenticationPrincipal CustomUserDetails customUserDetails, @PageableDefault(size=9, sort="createDate",direction= Sort.Direction.DESC) Pageable pageable) {
+        Page<BookEntity> pageBook = bookService.getAllByUserId(customUserDetails.getId(), pageable);
+//        List<BookEntity> bookEntity = bookService.getAllByUserId(customUserDetails.getId());
+        List<BookEntity> bookEntity = pageBook.getContent();
         List<BookCoverDTO> bookCoverDTOs = bookEntity.stream()
                 .map(book -> BookCoverDTO.builder()
                         .bookId(book.getId())
@@ -81,8 +87,13 @@ public class BookBoardController {
                         .storyLength(book.getStoryLength())
                         .build())
                 .collect(Collectors.toList());
-        ResponseDTO<BookCoverDTO> responseDTO = ResponseDTO.<BookCoverDTO>builder()
-                .data(bookCoverDTOs)
+        Pagination<BookEntity> pagination = new Pagination<>(pageBook);
+        RetrieveBookCoverResponseDTO retrieveBookCoverResponseDTO = RetrieveBookCoverResponseDTO.builder()
+                .books(bookCoverDTOs)
+                .pageInfo(pagination)
+                .build();
+        ResponseDTO<RetrieveBookCoverResponseDTO> responseDTO = ResponseDTO.<RetrieveBookCoverResponseDTO>builder()
+                .data(List.of(retrieveBookCoverResponseDTO))
                 .build();
         return ResponseEntity.ok().body(responseDTO);
     }

@@ -4,6 +4,8 @@ import com.pkg.littlewriter.domain.model.CharacterEntity;
 import com.pkg.littlewriter.persistence.CharacterRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,31 +24,34 @@ public class CharacterService {
         return characterRepository.findById(characterEntity.getId()).orElseThrow();
     }
 
-    public List<CharacterEntity> update(CharacterEntity characterEntity) {
-        validate(characterEntity);
-        Optional<CharacterEntity> original = characterRepository.findById(characterEntity.getId());
-        original.ifPresent((updateEntity) -> {
-            updateEntity.setName(characterEntity.getName());
-            updateEntity.setPersonality(characterEntity.getPersonality());
-            updateEntity.setImageUrl(characterEntity.getImageUrl());
-        });
-        return retrieveByUserId(characterEntity.getMemberId());
+//    public List<CharacterEntity> update(CharacterEntity characterEntity) {
+//        validate(characterEntity);
+//        Optional<CharacterEntity> original = characterRepository.findById(characterEntity.getId());
+//        original.ifPresent((updateEntity) -> {
+//            updateEntity.setName(characterEntity.getName());
+//            updateEntity.setPersonality(characterEntity.getPersonality());
+//            updateEntity.setImageUrl(characterEntity.getImageUrl());
+//        });
+//        return retrieveByUserId(characterEntity.getMemberId());
+//    }
+
+//    public List<CharacterEntity> retrieveByUserId(Long userId) {
+//        return characterRepository.findByMemberId(userId);
+//    }
+    public Page<CharacterEntity> retrieveByUserId(Long userId, Pageable pageable) {
+        return characterRepository.findByMemberId(userId, pageable);
     }
 
-    public List<CharacterEntity> retrieveByUserId(Long userId) {
-        return characterRepository.findByMemberId(userId);
-    }
-
-    public List<CharacterEntity> delete(CharacterEntity characterEntity) {
-        validate(characterEntity);
-        try {
-            characterRepository.delete(characterEntity);
-        } catch (Exception e) {
-            log.error("err deleting characterEntity", characterEntity.getId(), e);
-            throw new RuntimeException("err deleting characterEntity" + characterEntity.getId());
-        }
-        return retrieveByUserId(characterEntity.getMemberId());
-    }
+//    public List<CharacterEntity> delete(CharacterEntity characterEntity) {
+//        validate(characterEntity);
+//        try {
+//            characterRepository.delete(characterEntity);
+//        } catch (Exception e) {
+//            log.error("err deleting characterEntity", characterEntity.getId(), e);
+//            throw new RuntimeException("err deleting characterEntity" + characterEntity.getId());
+//        }
+//        return retrieveByUserId(characterEntity.getMemberId());
+//    }
 
     private void validate(CharacterEntity characterEntity) {
         if ((characterEntity == null)) {

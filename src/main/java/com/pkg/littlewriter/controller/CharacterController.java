@@ -1,13 +1,9 @@
 package com.pkg.littlewriter.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.pkg.littlewriter.domain.generativeAi.GenerativeAiResponse;
 import com.pkg.littlewriter.domain.generativeAi.Jsonable;
-import com.pkg.littlewriter.domain.generativeAi.UrlJsonable;
 import com.pkg.littlewriter.domain.generativeAi.openAi.OpenAiException;
 import com.pkg.littlewriter.domain.generativeAi.openAi.image.CharacterImageKeywordExtractor;
 import com.pkg.littlewriter.domain.generativeAi.openAi.image.CharacterImageToTextInputJsonable;
-import com.pkg.littlewriter.domain.generativeAi.openAiModels.ImageToTextGenerator;
 import com.pkg.littlewriter.domain.generativeAi.openAiModels.SimpleWordTranslator;
 import com.pkg.littlewriter.domain.generativeAi.others.BackgroundRemoveApi;
 import com.pkg.littlewriter.domain.generativeAi.others.BackgroundRemoveResponse;
@@ -27,6 +23,10 @@ import com.pkg.littlewriter.utils.S3File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -89,14 +89,20 @@ public class CharacterController {
     }
 
     @GetMapping
-    public ResponseEntity<?> retrieveCharacters(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> retrieveCharacters(@AuthenticationPrincipal CustomUserDetails userDetails, @PageableDefault(size=9, sort="name",direction= Sort.Direction.ASC) Pageable pageable) {
         MemberEntity memberEntity = userService.getById(userDetails.getId());
-        List<CharacterEntity> characterEntities = characterService.retrieveByUserId(memberEntity.getId());
+        Page<CharacterEntity> page =characterService.retrieveByUserId(memberEntity.getId(), pageable);
+        List<CharacterEntity> characterEntities = page.getContent();
+        Pagination<CharacterEntity> pagination = new Pagination<>(page);
         List<CharacterDTO> characterDTOs = characterEntities.stream()
                 .map(CharacterDTO::new)
                 .toList();
-        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                .data(characterDTOs)
+        RetrieveCharacterResponseDTO retrieveCharacterResponseDTO = RetrieveCharacterResponseDTO.builder()
+                .characters(characterDTOs)
+                .pageInfo(pagination)
+                .build();
+        ResponseDTO<RetrieveCharacterResponseDTO> responseDTO = ResponseDTO.<RetrieveCharacterResponseDTO>builder()
+                .data(List.of(retrieveCharacterResponseDTO))
                 .build();
         return ResponseEntity.ok().body(responseDTO);
     }
@@ -137,57 +143,57 @@ public class CharacterController {
         return ResponseEntity.ok().body(responseDTO);
     }
 
-    @PutMapping("/image")
-    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO, @RequestParam(value = "id") Long characterId) {
-        S3File characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
-        CharacterEntity characterEntity = characterService.getById(characterId);
-        s3BucketService.deleteFileFromS3(new S3File(characterEntity.getImageUrl()));
-        characterEntity.setImageUrl(characterImageFile.getUrl());
-        List<CharacterDTO> characters = characterService.update(characterEntity)
-                .stream()
-                .map(CharacterDTO::new)
-                .toList();
-        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                .data(characters)
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
-    }
-
-    @PutMapping("/details")
-    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
-        CharacterEntity targetCharacterEntity = characterService.getById(characterDTO.getId());
-        targetCharacterEntity.setPersonality(characterDTO.getPersonality());
-        targetCharacterEntity.setName(characterDTO.getName());
-        List<CharacterDTO> characters = characterService.update(targetCharacterEntity)
-                .stream()
-                .map(CharacterDTO::new)
-                .toList();
-        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                .data(characters)
-                .build();
-        return ResponseEntity.ok().body(responseDTO);
-    }
-
-    @DeleteMapping
-    public ResponseEntity<?> deleteCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
-        try {
-            CharacterEntity targetEntity = characterService.getById(characterDTO.getId());
-            targetEntity.setMemberId(userDetails.getId());
-            s3BucketService.deleteFileFromS3(new S3File(targetEntity.getImageUrl()));
-            List<CharacterEntity> characterEntities = characterService.delete(targetEntity);
-            List<CharacterDTO> characterDTOS = characterEntities.stream()
-                    .map(CharacterDTO::new)
-                    .toList();
-            ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                    .data(characterDTOS)
-                    .build();
-            return ResponseEntity.ok().body(responseDTO);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-            ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
-                    .error(e.getMessage())
-                    .build();
-            return ResponseEntity.badRequest().body(responseDTO);
-        }
-    }
+//    @PutMapping("/image")
+//    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterCreationRequestDTO characterCreationRequestDTO, @RequestParam(value = "id") Long characterId) {
+//        S3File characterImageFile = s3BucketService.uploadFromBase64(characterCreationRequestDTO.getBase64Image(), S3DirectoryEnum.CHARACTER);
+//        CharacterEntity characterEntity = characterService.getById(characterId);
+//        s3BucketService.deleteFileFromS3(new S3File(characterEntity.getImageUrl()));
+//        characterEntity.setImageUrl(characterImageFile.getUrl());
+//        List<CharacterDTO> characters = characterService.update(characterEntity)
+//                .stream()
+//                .map(CharacterDTO::new)
+//                .toList();
+//        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
+//                .data(characters)
+//                .build();
+//        return ResponseEntity.ok().body(responseDTO);
+//    }
+//
+//    @PutMapping("/details")
+//    public ResponseEntity<?> updateCharacterImage(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
+//        CharacterEntity targetCharacterEntity = characterService.getById(characterDTO.getId());
+//        targetCharacterEntity.setPersonality(characterDTO.getPersonality());
+//        targetCharacterEntity.setName(characterDTO.getName());
+//        List<CharacterDTO> characters = characterService.update(targetCharacterEntity)
+//                .stream()
+//                .map(CharacterDTO::new)
+//                .toList();
+//        ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
+//                .data(characters)
+//                .build();
+//        return ResponseEntity.ok().body(responseDTO);
+//    }
+//
+//    @DeleteMapping
+//    public ResponseEntity<?> deleteCharacter(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody CharacterDTO characterDTO) {
+//        try {
+//            CharacterEntity targetEntity = characterService.getById(characterDTO.getId());
+//            targetEntity.setMemberId(userDetails.getId());
+//            s3BucketService.deleteFileFromS3(new S3File(targetEntity.getImageUrl()));
+//            List<CharacterEntity> characterEntities = characterService.delete(targetEntity);
+//            List<CharacterDTO> characterDTOS = characterEntities.stream()
+//                    .map(CharacterDTO::new)
+//                    .toList();
+//            ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
+//                    .data(characterDTOS)
+//                    .build();
+//            return ResponseEntity.ok().body(responseDTO);
+//        } catch (Exception e) {
+//            log.warn(e.getMessage());
+//            ResponseDTO<CharacterDTO> responseDTO = ResponseDTO.<CharacterDTO>builder()
+//                    .error(e.getMessage())
+//                    .build();
+//            return ResponseEntity.badRequest().body(responseDTO);
+//        }
+//    }
 }

@@ -10,6 +10,8 @@ import com.pkg.littlewriter.dto.BookInsightDTO;
 import com.pkg.littlewriter.dto.WordQuestionDTO;
 import com.pkg.littlewriter.persistence.BookPageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -48,9 +50,12 @@ public class BookService {
         return bookRepository.findById(bookEntity.getId()).orElseThrow();
     }
 
-    public List<BookEntity> getAllByUserId(Long userId) {
-        return bookRepository.findAllByUserId(userId);
-    }
+//    public List<BookEntity> getAllByUserId(Long userId) {
+//        return bookRepository.findAllByUserId(userId);
+//    }
+    public Page<BookEntity> getAllByUserId(Long userId, Pageable pageable) {
+        return  bookRepository.findAllByUserId(userId, pageable);
+    };
 
     public BookEntity getById(String bookId) {
         return bookRepository.findById(bookId).orElseThrow();
